@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>区块链操作页面</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 添加Bootstrap样式 -->
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.5.3/css/bootstrap.min.css">
+    <!-- 添加认证和区块链帮助脚本 -->
+    <script src="js/auth-helper.js"></script>
+    <script src="js/blockchain-helper.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+            "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+            "Segoe UI Symbol", "Noto Color Emoji";
+            margin: 0;
+            padding: 0; /* 移除内边距，让导航栏能够全宽显示 */
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        /* 导航栏样式 */
+        .navbar {
+            margin-bottom: 20px;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 2rem auto;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1),
+            0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+        .button-group {
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        .btn {
+            padding: 0.625rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1),
+            0 1px 2px rgba(0,0,0,0.06);
+        }
+        .btn-primary {
+            background-color: #4f46e5;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca;
+        }
+        .btn-primary:disabled { /* 新增：禁用按钮样式 */
+            background-color: #a5b4fc; /* 更浅的靛蓝色 */
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        .btn-secondary:disabled { /* 新增：禁用按钮样式 */
+            background-color: #d1d5db; /* 浅灰色 */
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .btn-success {
+            background-color: #10b981;
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #059669;
+        }
+        .btn-success:disabled { /* 新增：禁用按钮样式 */
+            background-color: #6ee7b7; /* 更浅的绿色 */
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        .display-box {
+            width: 100%;
+            min-height: 180px;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border: 1px solid #d1d5db;
+            background-color: #f9fafb;
+            border-radius: 0.5rem;
+            overflow-y: auto;
+            font-family: 'Menlo','Monaco','Consolas',"Courier New",monospace;
+            font-size: 0.8125rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.6;
+        }
+        .section h3, .modal-content h3, .modal-content h4 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 1rem;
+        }
+        .modal-content h4 {
+            font-size: 1.25rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.375rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+        input[type="text"], input[type="password"], textarea, select {
+            width: 100%;
+            padding: 0.625rem 0.75rem;
+            margin-bottom: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        input[type="text"]:focus, input[type="password"]:focus,
+        textarea:focus, select:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79,70,229,0.3);
+            outline: none;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 2rem;
+            width: 90%;
+            max-width: 700px;
+            border-radius: 0.75rem;
+            box-shadow: 0 20px 25px rgba(0,0,0,0.1),
+            0 10px 10px rgba(0,0,0,0.04);
+        }
+        .close-button {
+            color: #9ca3af;
+            float: right;
+            font-size: 1.75rem;
+            font-weight: bold;
+            line-height: 1;
+            cursor: pointer;
+            transition: color 0.2s ease-in-out;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: #1f2937;
+            text-decoration: none;
+        }
+        .message-area {
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            border: 1px solid;
+        }
+        .message-success {
+            background-color: #d1fae5;
+            border-color: #34d399;
+            color: #065f46;
+        }
+        .message-error {
+            background-color: #fee2e2;
+            border-color: #f87171;
+            color: #991b1b;
+        }
+        .message-info {
+            background-color: #dbeafe;
+            border-color: #60a5fa;
+            color: #1e40af;
+        }
+        .hidden { display: none; }
+        .tab-content {
+            border-top: 1px solid #e5e7eb;
+            padding-top: 1.25rem;
+            margin-top: 1.25rem;
+        }
+        hr.my-4 {
+            margin: 1rem 0;
+            border-color: #e5e7eb;
+        }
+        /* 新增：用户状态显示区域 */
+        #userAuthStatus {
+            padding: 0.75rem 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+        }
+        #userAuthStatus.status-did {
+            background-color: #e0e7ff; /* Light Indigo */
+            color: #3730a3; /* Dark Indigo */
+            border: 1px solid #c7d2fe;
+        }
+        #userAuthStatus.status-anonymous {
+            background-color: #d1fae5; /* Light Green */
+            color: #047857; /* Dark Green */
+            border: 1px solid #a7f3d0;
+        }
+        #userAuthStatus.status-none {
+            background-color: #fee2e2; /* Light Red */
+            color: #991b1b; /* Dark Red */
+            border: 1px solid #fecaca;
+        }
+    </style>
+</head>
+
+<body class="antialiased">
+<!-- 添加导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="index.html">区块链投票系统</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="index.html">首页</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="BlockChain.html">区块链信息</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="elections.html">选举列表</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="create-election.html">创建选举</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="my-votes.html">我的投票</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="security-dashboard.html" style="color: #fbbf24 !important;">
+                        <i class="fas fa-shield-alt"></i> 安全管理中心
+                    </a>
+                </li>
+            </ul>
+            <div class="navbar-text mr-2" id="navbarUserInfo">
+                未登录
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-gray-900">区块链交互操作界面</h1>
+        <button id="logoutButton" class="btn btn-danger">登出</button>
+    </div>
+    <div id="userAuthStatus" class="status-none">正在检查认证状态...</div>
+    <div id="generalMessageArea" class="message-area hidden"></div>
+
+    <div class="button-group">
+        <button id="getCertificateBtn" title="在客户端生成新密钥对并注册新DID" class="btn btn-primary">1. 创建新DID</button>
+        <button id="createBlockchainBtn" class="btn btn-primary">2. 创建创世块</button>
+        <button id="mineBtn" class="btn btn-primary">3. 挖矿</button>
+        <button id="showNowBlockchain" class="btn btn-secondary">4. 显示当前链</button>
+        <button id="showPackedTransactionsBtn" class="btn btn-secondary">5. 显示已打包交易</button>
+        <button id="listDidsBtn" class="btn btn-secondary">6. 列出所有DID</button>
+        <button id="openDidUpdateModalBtn" class="btn btn-success">7. 管理DID密钥</button>
+        <button id="crossDomainAuthBtn" class="btn btn-info" onclick="window.open('crossdomain.html', '_blank')">8. 跨域认证系统</button>
+        <button id="securityDashboardBtn" class="btn" style="background: linear-gradient(45deg, #4f46e5, #7c3aed); color: white;" onclick="window.open('security-dashboard.html', '_blank')" title="打开区块链安全管理中心">
+            <i class="fas fa-shield-alt"></i> 9. 安全管理中心
+        </button>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6">
+        <div class="bg-white p-4 rounded-lg shadow">
+            <h2 class="text-xl font-semibold text-gray-700 mb-3">操作结果 1 (DID/一般消息)</h2>
+            <div class="display-box" id="displayBox1">请执行操作以查看结果...</div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+            <h2 class="text-xl font-semibold text-gray-700 mb-3">操作结果 2 (区块链/交易)</h2>
+            <div class="display-box" id="displayBox2">请执行操作以查看结果...</div>
+        </div>
+    </div>
+
+    <div id="didKeyManagementModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeDidKeyManagementModalBtn">&times;</span>
+            <h3>管理DID密钥</h3>
+            <div class="button-group mb-4">
+                <button id="tabAddKey" class="tab-button active">添加新密钥</button>
+                <button id="tabRemoveKey" class="tab-button inactive">移除现有密钥</button>
+            </div>
+            <div id="addKeyContent" class="tab-content">
+                <h4>添加新验证方法 (公钥)</h4>
+                <form id="didAddKeyForm" class="space-y-4">
+                    <div class="form-group">
+                        <label for="addKey_didToUpdate">要更新的DID:</label>
+                        <select id="addKey_didToUpdate" name="didToUpdate" required class="mt-1 block w-full"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="addKey_authorizingKeyId">用于授权的现有密钥ID:</label>
+                        <select id="addKey_authorizingKeyId" name="authorizingKeyId" required class="mt-1 block w-full"></select>
+                    </div>
+                    <hr class="my-4">
+                    <h5>新公钥信息:</h5>
+                    <div class="form-group">
+                        <label for="addKey_newKeyIdFragment">新密钥ID片段 (例如: keys-2):</label>
+                        <input type="text" id="addKey_newKeyIdFragment" name="newKeyIdFragment" required placeholder="例如: keys-2" class="mt-1 block w-full">
+                    </div>
+                    <div class="form-group">
+                        <label for="addKey_newKeyType">新密钥类型:</label>
+                        <select id="addKey_newKeyType" name="newKeyType" class="mt-1 block w-full">
+                            <option value="RsaVerificationKey2018" selected>RsaVerificationKey2018</option>
+                            <option value="EcdsaSecp256k1VerificationKey2019">EcdsaSecp256k1VerificationKey2019</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="addKey_newPublicKeyBase64">新公钥 (Base64 SPKI):</label>
+                        <textarea id="addKey_newPublicKeyBase64" name="newPublicKeyBase64" rows="3" required placeholder="粘贴Base64编码的公钥" class="mt-1 block w-full"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="addKey_newKeyController">新密钥控制者 (可选):</label>
+                        <input type="text" id="addKey_newKeyController" name="newKeyController" placeholder="默认为DID本身" class="mt-1 block w-full">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-full">发起添加密钥请求</button>
+                </form>
+                <div id="didAddKeyMessageArea" class="message-area hidden"></div>
+            </div>
+            <div id="removeKeyContent" class="tab-content hidden">
+                <h4>移除现有验证方法 (公钥)</h4>
+                <form id="didRemoveKeyForm" class="space-y-4">
+                    <div class="form-group">
+                        <label for="removeKey_didToUpdate">要更新的DID:</label>
+                        <select id="removeKey_didToUpdate" name="didToUpdate" required class="mt-1 block w-full"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="removeKey_keyIdToRemove">要移除的密钥ID:</label>
+                        <select id="removeKey_keyIdToRemove" name="keyIdToRemove" required class="mt-1 block w-full"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="removeKey_authorizingKeyId">用于授权的现有密钥ID:</label>
+                        <select id="removeKey_authorizingKeyId" name="authorizingKeyId" required class="mt-1 block w-full"></select>
+                    </div>
+                    <button type="submit" class="btn btn-danger w-full">发起移除密钥请求</button>
+                </form>
+                <div id="didRemoveKeyMessageArea" class="message-area hidden"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 全局常量和状态 ---
+    const API_BASE_URL = 'http://localhost:8080/api';
+    let currentChallengeForAddKey = '';
+    let currentChallengeForRemoveKey = '';
+    let payloadToSignForAddKey = {};
+    let payloadToSignForRemoveKey = {};
+
+    // 当前用户认证状态
+    let currentUserAuth = {
+        isAuthenticated: false,
+        authType: null, // 'DID' 或 'ANONYMOUS'
+        identifier: null
+    };
+
+    // --- DOM 元素获取 ---
+    const userAuthStatusDiv = document.getElementById('userAuthStatus');
+    const logoutButton = document.getElementById('logoutButton');
+    const getCertificateBtn = document.getElementById('getCertificateBtn');
+    const openDidUpdateModalBtn = document.getElementById('openDidUpdateModalBtn');
+    const createBlockchainBtn = document.getElementById('createBlockchainBtn');
+    const mineBtn = document.getElementById('mineBtn');
+    const showNowBlockchain = document.getElementById('showNowBlockchain');
+    const showPackedTransactionsBtn = document.getElementById('showPackedTransactionsBtn');
+    const listDidsBtn = document.getElementById('listDidsBtn');
+    const displayBox1 = document.getElementById('displayBox1');
+    const displayBox2 = document.getElementById('displayBox2');
+    const generalMessageArea = document.getElementById('generalMessageArea');
+
+    // --- IndexedDB 配置与辅助函数 ---
+    const DB_NAME_KEYS = "UserDIDKeyStore_BlockChainPage";
+    const DB_VERSION_KEYS = 1;
+    const KEY_STORE_NAME_KEYS = "localUserKeys";
+    let idbKeys;
+    
+    // IndexedDB 辅助函数实现
+    function openLocalKeysDb() {
+        return new Promise((resolve, reject) => {
+            if (idbKeys) { resolve(idbKeys); return; }
+            const request = indexedDB.open(DB_NAME_KEYS, DB_VERSION_KEYS);
+            request.onerror = (event) => reject("打开本地密钥IndexedDB失败: " + event.target.errorCode);
+            request.onsuccess = (event) => { idbKeys = event.target.result; resolve(idbKeys); };
+            request.onupgradeneeded = (event) => {
+                const storeDb = event.target.result;
+                if (!storeDb.objectStoreNames.contains(KEY_STORE_NAME_KEYS)) {
+                    const objectStore = storeDb.createObjectStore(KEY_STORE_NAME_KEYS, { keyPath: "didAndKeyId" });
+                    objectStore.createIndex("did", "did", { unique: false });
+                    console.log("本地密钥IndexedDB object store '" + KEY_STORE_NAME_KEYS + "' 已创建.");
+                }
+            };
+        });
+    }
+    
+    async function addLocalKeyToDbBlockChain(keyInfo) {
+        const currentDb = await openLocalKeysDb();
+        return new Promise((resolve, reject) => {
+            const transaction = currentDb.transaction([KEY_STORE_NAME_KEYS], "readwrite");
+            const store = transaction.objectStore(KEY_STORE_NAME_KEYS);
+            const request = store.put(keyInfo);
+            request.onsuccess = () => resolve();
+            request.onerror = (event) => reject("添加密钥到本地DB失败: " + event.target.error);
+        });
+    }
+    
+    async function getLocalKeyFromDbBlockChain(didAndKeyId) {
+        const currentDb = await openLocalKeysDb();
+        return new Promise((resolve, reject) => {
+            const transaction = currentDb.transaction([KEY_STORE_NAME_KEYS], "readonly");
+            const store = transaction.objectStore(KEY_STORE_NAME_KEYS);
+            const request = store.get(didAndKeyId);
+            request.onsuccess = (event) => resolve(event.target.result);
+            request.onerror = (event) => reject("从本地DB获取密钥失败: " + event.target.error);
+        });
+    }
+    
+    async function getAllLocalKeysFromDbBlockChain() {
+        const currentDb = await openLocalKeysDb();
+        return new Promise((resolve, reject) => {
+            const transaction = currentDb.transaction([KEY_STORE_NAME_KEYS], "readonly");
+            const store = transaction.objectStore(KEY_STORE_NAME_KEYS);
+            const request = store.getAll();
+            request.onsuccess = (event) => resolve(event.target.result);
+            request.onerror = (event) => reject("从本地DB获取所有密钥失败: " + event.target.error);
+        });
+    }
+    
+    async function deleteLocalKeyFromDbBlockChain(didAndKeyId) {
+        const currentDb = await openLocalKeysDb();
+        return new Promise((resolve, reject) => {
+            const transaction = currentDb.transaction([KEY_STORE_NAME_KEYS], "readwrite");
+            const store = transaction.objectStore(KEY_STORE_NAME_KEYS);
+            const request = store.delete(didAndKeyId);
+            request.onsuccess = () => resolve();
+            request.onerror = (event) => reject("从本地DB删除密钥失败: " + event.target.error);
+        });
+    }
+
+    // 初始化函数
+    async function initApp() {
+        // 检查用户认证状态
+        try {
+            const authStatus = await blockchainAPI.checkAuthStatus();
+            updateAuthStatusDisplay(authStatus);
+        } catch (error) {
+            console.error('获取认证状态失败:', error);
+            showMessage(generalMessageArea, '获取认证状态失败：' + (error.message || '未知错误'), 'error');
+            // 显示未登录状态
+            updateAuthStatusDisplay({ isAuthenticated: false });
+        }
+
+        // 初始化IndexedDB
+        try {
+            await openLocalKeysDb();
+        } catch (error) {
+            console.error('初始化本地密钥数据库失败:', error);
+            showMessage(generalMessageArea, '初始化本地密钥数据库失败: ' + error.message, 'error');
+        }
+    }
+
+    // 更新认证状态显示
+    function updateAuthStatusDisplay(authStatus) {
+        currentUserAuth = authStatus;
+        
+        if (authStatus.isAuthenticated) {
+            if (authStatus.authType === 'DID') {
+                userAuthStatusDiv.textContent = `已登录：${authStatus.identifier}`;
+                userAuthStatusDiv.className = 'status-did';
+                
+                // DID认证的用户可以使用所有功能
+                getCertificateBtn.disabled = false;
+                openDidUpdateModalBtn.disabled = false;
+                getCertificateBtn.title = "在客户端生成新密钥对并注册新DID";
+                openDidUpdateModalBtn.title = "管理DID密钥";
+            } else if (authStatus.authType === 'ANONYMOUS') {
+                userAuthStatusDiv.textContent = `匿名访问中：${authStatus.identifier || '临时用户'}`;
+                userAuthStatusDiv.className = 'status-anonymous';
+                
+                // 匿名用户不能创建DID或管理密钥
+                getCertificateBtn.disabled = true;
+                openDidUpdateModalBtn.disabled = true;
+                getCertificateBtn.title = "匿名用户不能创建新DID";
+                openDidUpdateModalBtn.title = "匿名用户不能管理DID密钥";
+            }
+        } else {
+            userAuthStatusDiv.textContent = '未登录！请返回登录页面进行认证。';
+            userAuthStatusDiv.className = 'status-none';
+            
+            // 未登录用户不能使用任何功能
+            getCertificateBtn.disabled = true;
+            openDidUpdateModalBtn.disabled = true;
+            getCertificateBtn.title = "请先登录以创建新DID";
+            openDidUpdateModalBtn.title = "请先登录以管理DID密钥";
+            
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 2000);
+        }
+    }
+
+    // 显示消息
+    function showMessage(element, message, type = 'info') {
+        element.textContent = message;
+        element.className = `message-area message-${type}`;
+        element.classList.remove('hidden');
+        setTimeout(() => {
+            element.classList.add('hidden');
+        }, 5000); // 5秒后自动隐藏
+    }
+
+    // --- 事件监听器设置 ---
+    
+    // 登出按钮
+    logoutButton.addEventListener('click', () => {
+        AuthHelper.logout();
+        // 添加重定向到登录页面
+        window.location.href = 'login.html';
+    });
+
+    // 创建新DID按钮
+    getCertificateBtn.addEventListener('click', async () => {
+        if (currentUserAuth.authType !== 'DID') {
+            showMessage(generalMessageArea, '只有DID认证用户才能创建新DID', 'error');
+            return;
+        }
+        
+        try {
+            displayBox1.textContent = "正在生成新密钥对...";
+            
+            // 生成RSA密钥对
+            const keyPair = await window.crypto.subtle.generateKey(
+                {
+                    name: "RSASSA-PKCS1-v1_5",
+                    modulusLength: 2048,
+                    publicExponent: new Uint8Array([0x01, 0x00, 0x01]),
+                    hash: "SHA-256",
+                },
+                true,
+                ["sign", "verify"]
+            );
+            
+            // 导出公钥
+            const exportedSpki = await window.crypto.subtle.exportKey("spki", keyPair.publicKey);
+            const publicKeyBase64 = arrayBufferToBase64(exportedSpki);
+            
+            // 调用API创建DID
+            const response = await AuthHelper.fetchWithAuth(`${API_BASE_URL}/did/create`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ publicKeyBase64: publicKeyBase64 })
+            });
+            
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.message || result.error || `创建DID失败 (${response.status})`);
+            }
+            
+            const newDidDocument = result.didDocument;
+            if (!newDidDocument || !newDidDocument.id) {
+                throw new Error("创建DID成功，但服务器返回的DID文档无效");
+            }
+            
+            // 获取新DID和密钥ID
+            const newDidString = newDidDocument.id;
+            const newKeyId = newDidDocument.authentication && newDidDocument.authentication.length > 0
+                ? newDidDocument.authentication[0]
+                : `${newDidString}#keys-1`;
+            
+            // 保存密钥到IndexedDB
+            await addLocalKeyToDbBlockChain({
+                didAndKeyId: newKeyId,
+                did: newDidString,
+                keyId: newKeyId,
+                publicKeyBase64: publicKeyBase64,
+                privateKey: keyPair.privateKey,
+                hasPrivateKey: true
+            });
+            
+            // 显示结果
+            displayBox1.textContent = JSON.stringify(newDidDocument, null, 2);
+            showMessage(generalMessageArea, `DID ${newDidString} 创建成功！密钥已安全存储。`, 'success');
+            
+        } catch (error) {
+            console.error('创建DID失败:', error);
+            displayBox1.textContent = '创建DID失败: ' + (error.message || '未知错误');
+            showMessage(generalMessageArea, '创建DID失败，详情请查看控制台', 'error');
+        }
+    });
+
+    // 管理DID密钥按钮
+    openDidUpdateModalBtn.addEventListener('click', async () => {
+        if (currentUserAuth.authType !== 'DID') {
+            showMessage(generalMessageArea, '只有DID认证用户才能管理密钥', 'error');
+            return;
+        }
+        
+        try {
+            // 填充选择器
+            await populateDidSelectorsInModal();
+            
+            // 显示模态框
+            const didKeyManagementModal = document.getElementById('didKeyManagementModal');
+            didKeyManagementModal.style.display = "block";
+            
+            // 默认显示添加密钥标签页
+            document.getElementById('addKeyContent').classList.remove('hidden');
+            document.getElementById('removeKeyContent').classList.add('hidden');
+            document.getElementById('tabAddKey').classList.add('active');
+            document.getElementById('tabRemoveKey').classList.remove('active');
+            
+        } catch (error) {
+            console.error('打开DID密钥管理失败:', error);
+            showMessage(generalMessageArea, '打开DID密钥管理失败: ' + (error.message || '未知错误'), 'error');
+        }
+    });
+
+    // 关闭密钥管理模态框
+    document.getElementById('closeDidKeyManagementModalBtn').addEventListener('click', () => {
+        document.getElementById('didKeyManagementModal').style.display = "none";
+    });
+
+    // 模态框标签页切换
+    document.getElementById('tabAddKey').addEventListener('click', () => {
+        document.getElementById('addKeyContent').classList.remove('hidden');
+        document.getElementById('removeKeyContent').classList.add('hidden');
+        document.getElementById('tabAddKey').classList.add('active');
+        document.getElementById('tabRemoveKey').classList.remove('active');
+    });
+
+    document.getElementById('tabRemoveKey').addEventListener('click', () => {
+        document.getElementById('removeKeyContent').classList.remove('hidden');
+        document.getElementById('addKeyContent').classList.add('hidden');
+        document.getElementById('tabRemoveKey').classList.add('active');
+        document.getElementById('tabAddKey').classList.remove('active');
+    });
+
+    // 创建创世块
+    createBlockchainBtn.addEventListener('click', async () => {
+        try {
+            displayBox2.textContent = '正在创建创世块...';
+            const result = await blockchainAPI.createGenesisBlock();
+            displayBox2.textContent = JSON.stringify(result, null, 2);
+            showMessage(generalMessageArea, '创世块创建成功！', 'success');
+        } catch (error) {
+            console.error('创建创世块失败:', error);
+            displayBox2.textContent = '创建创世块失败: ' + (error.message || '未知错误');
+            showMessage(generalMessageArea, '创建创世块失败，详情请查看控制台', 'error');
+        }
+    });
+
+    // 挖矿按钮
+    mineBtn.addEventListener('click', async () => {
+        try {
+            displayBox2.textContent = '正在挖矿...';
+            const result = await blockchainAPI.mineBlock();
+            displayBox2.textContent = JSON.stringify(result, null, 2);
+            showMessage(generalMessageArea, '挖矿成功！', 'success');
+        } catch (error) {
+            console.error('挖矿失败:', error);
+            displayBox2.textContent = '挖矿失败: ' + (error.message || '未知错误');
+            showMessage(generalMessageArea, '挖矿失败，详情请查看控制台', 'error');
+        }
+    });
+
+    // 显示当前链
+    showNowBlockchain.addEventListener('click', async () => {
+        try {
+            displayBox2.textContent = '正在获取区块链数据...';
+            const result = await blockchainAPI.getBlockchain();
+            displayBox2.textContent = JSON.stringify(result, null, 2);
+        } catch (error) {
+            console.error('获取区块链失败:', error);
+            displayBox2.textContent = '获取区块链失败: ' + (error.message || '未知错误');
+            showMessage(generalMessageArea, '获取区块链失败，详情请查看控制台', 'error');
+        }
+    });
+
+    // 显示已打包交易
+    showPackedTransactionsBtn.addEventListener('click', async () => {
+        try {
+            displayBox2.textContent = '正在获取已打包交易...';
+            const result = await blockchainAPI.getPackedTransactions();
+            displayBox2.textContent = JSON.stringify(result, null, 2);
+        } catch (error) {
+            console.error('获取已打包交易失败:', error);
+            displayBox2.textContent = '获取已打包交易失败: ' + (error.message || '未知错误');
+            showMessage(generalMessageArea, '获取已打包交易失败，详情请查看控制台', 'error');
+        }
+    });
+
+    // 列出所有DID
+    listDidsBtn.addEventListener('click', async () => {
+        try {
+            displayBox1.textContent = '正在获取DID列表...';
+            const response = await AuthHelper.fetchWithAuth(`${API_BASE_URL}/did/list`);
+            const result = await response.json();
+            displayBox1.textContent = JSON.stringify(result, null, 2);
+        } catch (error) {
+            console.error('获取DID列表失败:', error);
+            displayBox1.textContent = '获取DID列表失败: ' + (error.message || '未知错误');
+            showMessage(generalMessageArea, '获取DID列表失败，详情请查看控制台', 'error');
+        }
+    });
+
+    // Base64转换函数
+    function arrayBufferToBase64(buffer) {
+        let binary = '';
+        const bytes = new Uint8Array(buffer);
+        for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return window.btoa(binary);
+    }
+
+    // 获取DID选择器函数
+    async function populateDidSelectorsInModal() {
+        try {
+            const keys = await getAllLocalKeysFromDbBlockChain();
+            const uniqueDids = [...new Set(keys.map(k => k.did))];
+            
+            // 获取选择器元素
+            const addKey_didToUpdate = document.getElementById('addKey_didToUpdate');
+            const removeKey_didToUpdate = document.getElementById('removeKey_didToUpdate');
+            
+            // 清空选择器
+            addKey_didToUpdate.innerHTML = '<option value="">-- 选择DID --</option>';
+            removeKey_didToUpdate.innerHTML = '<option value="">-- 选择DID --</option>';
+            
+            // 填充选择器
+            uniqueDids.forEach(did => {
+                addKey_didToUpdate.add(new Option(did, did));
+                removeKey_didToUpdate.add(new Option(did, did));
+            });
+            
+            // 如果没有DID
+            if (uniqueDids.length === 0) {
+                addKey_didToUpdate.innerHTML = '<option value="">-- 无可用DID --</option>';
+                removeKey_didToUpdate.innerHTML = '<option value="">-- 无可用DID --</option>';
+            }
+            
+            // 清空密钥选择器
+            document.getElementById('addKey_authorizingKeyId').innerHTML = '<option value="">-- 先选择DID --</option>';
+            document.getElementById('removeKey_keyIdToRemove').innerHTML = '<option value="">-- 先选择DID --</option>';
+            document.getElementById('removeKey_authorizingKeyId').innerHTML = '<option value="">-- 先选择DID --</option>';
+            
+        } catch (error) {
+            console.error('填充DID选择器失败:', error);
+            showMessage(generalMessageArea, '填充DID选择器失败: ' + error.message, 'error');
+        }
+    }
+
+    // DID选择器变化时更新密钥选择器
+    document.getElementById('addKey_didToUpdate').addEventListener('change', async function() {
+        const didString = this.value;
+        const keySelector = document.getElementById('addKey_authorizingKeyId');
+        
+        keySelector.innerHTML = '<option value="">-- 加载中... --</option>';
+        
+        if (!didString) {
+            keySelector.innerHTML = '<option value="">-- 先选择DID --</option>';
+            return;
+        }
+        
+        try {
+            const keys = await getAllLocalKeysFromDbBlockChain();
+            const didKeys = keys.filter(k => k.did === didString);
+            
+            keySelector.innerHTML = '';
+            
+            if (didKeys.length > 0) {
+                didKeys.forEach(key => {
+                    keySelector.add(new Option(key.keyId, key.keyId));
+                });
+            } else {
+                keySelector.innerHTML = '<option value="">-- 无可用密钥 --</option>';
+            }
+        } catch (error) {
+            console.error('加载密钥失败:', error);
+            keySelector.innerHTML = '<option value="">-- 加载失败 --</option>';
+        }
+    });
+
+    document.getElementById('removeKey_didToUpdate').addEventListener('change', async function() {
+        const didString = this.value;
+        const authKeySelector = document.getElementById('removeKey_authorizingKeyId');
+        const removeKeySelector = document.getElementById('removeKey_keyIdToRemove');
+        
+        authKeySelector.innerHTML = '<option value="">-- 加载中... --</option>';
+        removeKeySelector.innerHTML = '<option value="">-- 加载中... --</option>';
+        
+        if (!didString) {
+            authKeySelector.innerHTML = '<option value="">-- 先选择DID --</option>';
+            removeKeySelector.innerHTML = '<option value="">-- 先选择DID --</option>';
+            return;
+        }
+        
+        try {
+            const keys = await getAllLocalKeysFromDbBlockChain();
+            const didKeys = keys.filter(k => k.did === didString);
+            
+            authKeySelector.innerHTML = '';
+            removeKeySelector.innerHTML = '';
+            
+            if (didKeys.length > 0) {
+                didKeys.forEach(key => {
+                    authKeySelector.add(new Option(key.keyId, key.keyId));
+                    removeKeySelector.add(new Option(key.keyId, key.keyId));
+                });
+            } else {
+                authKeySelector.innerHTML = '<option value="">-- 无可用密钥 --</option>';
+                removeKeySelector.innerHTML = '<option value="">-- 无可用密钥 --</option>';
+            }
+        } catch (error) {
+            console.error('加载密钥失败:', error);
+            authKeySelector.innerHTML = '<option value="">-- 加载失败 --</option>';
+            removeKeySelector.innerHTML = '<option value="">-- 加载失败 --</option>';
+        }
+    });
+
+    // 处理添加密钥表单提交
+    document.getElementById('didAddKeyForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        const didAddKeyMsgArea = document.getElementById('didAddKeyMessageArea');
+        didAddKeyMsgArea.textContent = '正在处理添加密钥请求...';
+        didAddKeyMsgArea.className = 'message-area message-info';
+        didAddKeyMsgArea.classList.remove('hidden');
+        
+        const didToUpdate = document.getElementById('addKey_didToUpdate').value;
+        const authorizingKeyId = document.getElementById('addKey_authorizingKeyId').value;
+        const newKeyIdFragment = document.getElementById('addKey_newKeyIdFragment').value;
+        const newKeyType = document.getElementById('addKey_newKeyType').value;
+        const newPublicKeyBase64 = document.getElementById('addKey_newPublicKeyBase64').value;
+        const newKeyController = document.getElementById('addKey_newKeyController').value || didToUpdate;
+        
+        if (!didToUpdate || !authorizingKeyId || !newKeyIdFragment || !newKeyType || !newPublicKeyBase64) {
+            didAddKeyMsgArea.textContent = '所有必填字段都必须填写';
+            didAddKeyMsgArea.className = 'message-area message-error';
+            return;
+        }
+        
+        try {
+            // 1. 获取密钥挑战
+            const challengeResponse = await AuthHelper.fetchWithAuth(`${API_BASE_URL}/did/update/add-key/challenge`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    did: didToUpdate, 
+                    authorizingKeyId: authorizingKeyId 
+                })
+            });
+            
+            const challengeResult = await challengeResponse.json();
+            if (!challengeResponse.ok) {
+                throw new Error(challengeResult.message || challengeResult.error || "获取挑战失败");
+            }
+            
+            currentChallengeForAddKey = challengeResult.challenge;
+            
+            // 2. 准备签名负载
+            const newPublicKeyInfo = { 
+                idFragment: newKeyIdFragment, 
+                type: newKeyType, 
+                publicKeyBase64: newPublicKeyBase64, 
+                controller: newKeyController 
+            };
+            
+            payloadToSignForAddKey = {
+                operationType: "addKey",
+                did: didToUpdate,
+                authorizingKeyId: authorizingKeyId,
+                challenge: currentChallengeForAddKey,
+                newPublicKeyInfo: newPublicKeyInfo
+            };
+            
+            const payloadString = JSON.stringify(payloadToSignForAddKey);
+            
+            // 3. 获取私钥并签名
+            const authorizingKeyInfo = await getLocalKeyFromDbBlockChain(authorizingKeyId);
+            if (!authorizingKeyInfo || !authorizingKeyInfo.privateKey) {
+                throw new Error(`无法找到授权私钥 (${authorizingKeyId})`);
+            }
+            
+            const signatureArrayBuffer = await window.crypto.subtle.sign(
+                { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+                authorizingKeyInfo.privateKey,
+                new TextEncoder().encode(payloadString)
+            );
+            
+            const signature = arrayBufferToBase64(signatureArrayBuffer);
+            
+            // 4. 执行添加密钥
+            const executeUpdateRequest = {
+                did: didToUpdate,
+                newPublicKeyInfo: newPublicKeyInfo,
+                authorizingKeyId: authorizingKeyId,
+                challenge: currentChallengeForAddKey,
+                signatureBase64: signature
+            };
+            
+            const executeResponse = await AuthHelper.fetchWithAuth(`${API_BASE_URL}/did/update/add-key/execute`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(executeUpdateRequest)
+            });
+            
+            const executeResult = await executeResponse.json();
+            if (!executeResponse.ok) {
+                throw new Error(executeResult.message || executeResult.error || "添加密钥失败");
+            }
+            
+            // 5. 处理结果
+            if (executeResult.success) {
+                didAddKeyMsgArea.textContent = '添加密钥成功！';
+                didAddKeyMsgArea.className = 'message-area message-success';
+                displayBox1.textContent = JSON.stringify(executeResult.updatedDidDocument, null, 2);
+                await populateDidSelectorsInModal();
+            } else {
+                throw new Error(executeResult.message || "添加密钥失败，服务器未提供详细信息");
+            }
+            
+        } catch (error) {
+            console.error('添加密钥失败:', error);
+            didAddKeyMsgArea.textContent = `添加密钥失败: ${error.message || '未知错误'}`;
+            didAddKeyMsgArea.className = 'message-area message-error';
+        }
+    });
+
+    // 处理移除密钥表单提交
+    document.getElementById('didRemoveKeyForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        const didRemoveKeyMsgArea = document.getElementById('didRemoveKeyMessageArea');
+        didRemoveKeyMsgArea.textContent = '正在处理移除密钥请求...';
+        didRemoveKeyMsgArea.className = 'message-area message-info';
+        didRemoveKeyMsgArea.classList.remove('hidden');
+        
+        const didToUpdate = document.getElementById('removeKey_didToUpdate').value;
+        const keyIdToRemove = document.getElementById('removeKey_keyIdToRemove').value;
+        const authorizingKeyId = document.getElementById('removeKey_authorizingKeyId').value;
+        
+        if (!didToUpdate || !keyIdToRemove || !authorizingKeyId) {
+            didRemoveKeyMsgArea.textContent = '所有字段都必须选择';
+            didRemoveKeyMsgArea.className = 'message-area message-error';
+            return;
+        }
+        
+        if (keyIdToRemove === authorizingKeyId) {
+            if (!confirm('警告：您正在尝试使用密钥移除它自身。这可能导致DID无法进一步管理。确定要继续吗？')) {
+                didRemoveKeyMsgArea.textContent = '操作已取消';
+                didRemoveKeyMsgArea.className = 'message-area message-info';
+                return;
+            }
+        }
+        
+        try {
+            // 1. 获取密钥挑战
+            const challengeResponse = await AuthHelper.fetchWithAuth(`${API_BASE_URL}/did/update/remove-key/challenge`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    did: didToUpdate, 
+                    authorizingKeyId: authorizingKeyId,
+                    keyIdToRemove: keyIdToRemove
+                })
+            });
+            
+            const challengeResult = await challengeResponse.json();
+            if (!challengeResponse.ok) {
+                throw new Error(challengeResult.message || challengeResult.error || "获取挑战失败");
+            }
+            
+            currentChallengeForRemoveKey = challengeResult.challenge;
+            
+            // 2. 准备签名负载
+            payloadToSignForRemoveKey = {
+                operationType: "removeKey",
+                did: didToUpdate,
+                authorizingKeyId: authorizingKeyId,
+                challenge: currentChallengeForRemoveKey,
+                keyIdToRemove: keyIdToRemove
+            };
+            
+            const payloadString = JSON.stringify(payloadToSignForRemoveKey);
+            
+            // 3. 获取私钥并签名
+            const authorizingKeyInfo = await getLocalKeyFromDbBlockChain(authorizingKeyId);
+            if (!authorizingKeyInfo || !authorizingKeyInfo.privateKey) {
+                throw new Error(`无法找到授权私钥 (${authorizingKeyId})`);
+            }
+            
+            const signatureArrayBuffer = await window.crypto.subtle.sign(
+                { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+                authorizingKeyInfo.privateKey,
+                new TextEncoder().encode(payloadString)
+            );
+            
+            const signature = arrayBufferToBase64(signatureArrayBuffer);
+            
+            // 4. 执行移除密钥
+            const executeRemovalRequest = {
+                did: didToUpdate,
+                keyIdToRemove: keyIdToRemove,
+                authorizingKeyId: authorizingKeyId,
+                challenge: currentChallengeForRemoveKey,
+                signatureBase64: signature
+            };
+            
+            const executeResponse = await AuthHelper.fetchWithAuth(`${API_BASE_URL}/did/update/remove-key/execute`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(executeRemovalRequest)
+            });
+            
+            const executeResult = await executeResponse.json();
+            if (!executeResponse.ok) {
+                throw new Error(executeResult.message || executeResult.error || "移除密钥失败");
+            }
+            
+            // 5. 处理结果
+            if (executeResult.success) {
+                didRemoveKeyMsgArea.textContent = `密钥 ${keyIdToRemove} 已成功移除`;
+                didRemoveKeyMsgArea.className = 'message-area message-success';
+                displayBox1.textContent = JSON.stringify(executeResult.updatedDidDocument, null, 2);
+                
+                // 从本地移除密钥
+                try {
+                    await deleteLocalKeyFromDbBlockChain(keyIdToRemove);
+                } catch (dbError) {
+                    console.warn(`从本地存储移除密钥失败:`, dbError);
+                }
+                
+                await populateDidSelectorsInModal();
+            } else {
+                throw new Error(executeResult.message || "移除密钥失败，服务器未提供详细信息");
+            }
+            
+        } catch (error) {
+            console.error('移除密钥失败:', error);
+            didRemoveKeyMsgArea.textContent = `移除密钥失败: ${error.message || '未知错误'}`;
+            didRemoveKeyMsgArea.className = 'message-area message-error';
+        }
+    });
+
+    // 更新用户状态UI
+    function updateUserStatusUI() {
+        userAuthStatusDiv.classList.remove('status-did', 'status-anonymous', 'status-none');
+        
+        if (currentUserAuth.isAuthenticated) {
+            if (currentUserAuth.authType === 'did') {
+                userAuthStatusDiv.classList.add('status-did');
+                userAuthStatusDiv.innerHTML = `已通过DID认证: <strong>${currentUserAuth.identifier}</strong>`;
+                // 同时更新导航栏用户信息
+                document.getElementById('navbarUserInfo').textContent = `已登录: ${currentUserAuth.identifier.substring(0, 8)}...`;
+            } else {
+                userAuthStatusDiv.classList.add('status-anonymous');
+                userAuthStatusDiv.innerHTML = `匿名访问模式 (受限功能)`;
+                // 同时更新导航栏用户信息
+                document.getElementById('navbarUserInfo').textContent = '匿名访问';
+            }
+            logoutButton.style.display = 'block';
+        } else {
+            userAuthStatusDiv.classList.add('status-none');
+            userAuthStatusDiv.innerHTML = `未认证 - 请先<a href="login.html" class="text-blue-500 underline">登录</a>或<button id="createDidBtn" class="text-blue-600 underline">创建DID身份</button>`;
+            document.getElementById('createDidBtn').addEventListener('click', function() {
+                getCertificateBtn.click();
+            });
+            // 同时更新导航栏用户信息
+            document.getElementById('navbarUserInfo').textContent = '未登录';
+            logoutButton.style.display = 'none';
+            
+            // 如果未登录，延迟2秒后跳转到登录页面
+            setTimeout(() => {
+                window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.href);
+            }, 2000);
+        }
+        
+        // 同步按钮状态
+        getCertificateBtn.disabled = !currentUserAuth.isAuthenticated || currentUserAuth.authType !== 'did';
+        openDidUpdateModalBtn.disabled = !currentUserAuth.isAuthenticated || currentUserAuth.authType !== 'did';
+    }
+
+    // 在页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', initApp);
+</script>
+
+<!-- 添加Bootstrap相关脚本 -->
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.5.3/js/bootstrap.bundle.min.js"></script>
+
+<!-- 添加导航功能脚本 -->
+<script>
+    // 确保导航链接正常工作
+    document.addEventListener('DOMContentLoaded', function() {
+        // 获取所有导航链接
+        const navLinks = document.querySelectorAll('.navbar-nav a.nav-link');
+        
+        // 为每个链接添加点击事件处理
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (href) {
+                    window.location.href = href;
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

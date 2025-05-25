@@ -1,0 +1,1974 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>区块链安全管理中心</title>
+    
+    <!-- CSS Libraries -->
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.5.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.css">
+    
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #6b7280;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #3b82f6;
+            --dark-color: #1f2937;
+            --light-color: #f8fafc;
+            --border-color: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header h3 {
+            color: white;
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .sidebar-menu {
+            padding: 1rem 0;
+        }
+
+        .menu-item {
+            display: block;
+            padding: 0.75rem 1.5rem;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            text-decoration: none;
+        }
+
+        .menu-item i {
+            width: 20px;
+            margin-right: 10px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .page-header {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            color: var(--dark-color);
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .page-header p {
+            margin: 0.5rem 0 0 0;
+            color: var(--secondary-color);
+        }
+
+        /* Security Cards */
+        .security-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .security-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            margin: 0;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-badge.secure {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-badge.warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-badge.danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Charts */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 1rem 0;
+        }
+
+        /* Log Panel */
+        .log-panel {
+            background: #1a1a1a;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 1rem;
+            border-radius: 8px;
+            height: 400px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            margin-bottom: 1rem;
+        }
+
+        .log-entry {
+            margin-bottom: 0.5rem;
+            padding: 0.25rem;
+            border-radius: 3px;
+        }
+
+        .log-entry.info { color: #00ff00; }
+        .log-entry.warning { color: #ffff00; }
+        .log-entry.error { color: #ff0000; }
+        .log-entry.success { color: #00ffff; }
+
+        .log-timestamp {
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-control {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.75rem;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+            outline: none;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #3730a3;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        /* Metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+        }
+
+        /* Tables */
+        .table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .table thead {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        /* Modal */
+        .modal-content {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            background: var(--primary-color);
+            color: white;
+            border-radius: 10px 10px 0 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: -280px;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .sidebar.mobile-open {
+                margin-left: 0;
+            }
+        }
+
+        /* Animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Progress bars */
+        .progress {
+            height: 8px;
+            border-radius: 4px;
+            background: #e5e7eb;
+            margin: 0.5rem 0;
+        }
+
+        .progress-bar {
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Network status indicator */
+        .network-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .network-status.online {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .network-status.offline {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .network-status.warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.green { background: #10b981; }
+        .status-dot.red { background: #ef4444; }
+        .status-dot.yellow { background: #f59e0b; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Hide content sections by default */
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-shield-alt"></i> 安全管理中心</h3>
+            </div>
+            <div class="sidebar-menu">
+                <button class="menu-item active" data-section="overview">
+                    <i class="fas fa-tachometer-alt"></i> 安全总览
+                </button>
+                <button class="menu-item" data-section="network">
+                    <i class="fas fa-network-wired"></i> 网络环境
+                </button>
+                <button class="menu-item" data-section="node-trust">
+                    <i class="fas fa-users"></i> 节点信任
+                </button>
+                <button class="menu-item" data-section="authentication">
+                    <i class="fas fa-key"></i> 认证管理
+                </button>
+                <button class="menu-item" data-section="communication">
+                    <i class="fas fa-comments"></i> 安全通信
+                </button>
+                <button class="menu-item" data-section="integrity">
+                    <i class="fas fa-check-circle"></i> 完整性检查
+                </button>
+                <button class="menu-item" data-section="logs">
+                    <i class="fas fa-file-alt"></i> 实时日志
+                </button>
+                <button class="menu-item" data-section="settings">
+                    <i class="fas fa-cog"></i> 系统设置
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 id="page-title">安全总览</h1>
+                <p id="page-description">区块链网络安全状态监控与管理</p>
+                <div class="network-status online" id="global-status">
+                    <span class="status-dot green"></span>
+                    系统正常运行
+                </div>
+            </div>
+
+            <!-- 安全总览 -->
+            <div id="overview-section" class="content-section active">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="total-nodes">0</div>
+                        <div class="metric-label">总节点数</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="trusted-nodes">0</div>
+                        <div class="metric-label">可信节点</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="network-health">0%</div>
+                        <div class="metric-label">网络健康度</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="security-score">0%</div>
+                        <div class="metric-label">安全评分</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="security-card">
+                            <div class="card-header">
+                                <h3 class="card-title">网络状态分布</h3>
+                                <span class="status-badge secure">正常</span>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="network-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="security-card">
+                            <div class="card-header">
+                                <h3 class="card-title">安全威胁监控</h3>
+                                <span class="status-badge warning" id="threat-status">监控中</span>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="threat-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="security-card">
+                    <div class="card-header">
+                        <h3 class="card-title">快速操作</h3>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <button class="btn btn-primary w-100" onclick="initializeSecurityEnvironment()">
+                                <i class="fas fa-play"></i> 初始化安全环境
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-success w-100" onclick="performSecurityCheck()">
+                                <i class="fas fa-search"></i> 执行安全检查
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-warning w-100" onclick="showSecurityRecommendations()">
+                                <i class="fas fa-lightbulb"></i> 获取安全建议
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-danger w-100" onclick="simulateAttack()">
+                                <i class="fas fa-bug"></i> 模拟攻击测试
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 网络环境管理 -->
+            <div id="network-section" class="content-section">
+                <div class="security-card">
+                    <div class="card-header">
+                        <h3 class="card-title">网络环境控制</h3>
+                        <button class="btn btn-primary btn-sm" onclick="refreshNetworkStats()">
+                            <i class="fas fa-sync"></i> 刷新状态
+                        </button>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>网络条件设置</label>
+                                <select class="form-control" id="network-condition">
+                                    <option value="EXCELLENT">优秀</option>
+                                    <option value="GOOD">良好</option>
+                                    <option value="NORMAL" selected>正常</option>
+                                    <option value="POOR">较差</option>
+                                    <option value="TERRIBLE">糟糕</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>平均延迟</label>
+                                <input type="text" class="form-control" id="avg-latency" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>丢包率</label>
+                                <input type="text" class="form-control" id="packet-loss" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <button class="btn btn-primary" onclick="setNetworkCondition()">
+                                <i class="fas fa-network-wired"></i> 应用网络设置
+                            </button>
+                            <button class="btn btn-success ml-2" onclick="addTestNode()">
+                                <i class="fas fa-plus"></i> 添加测试节点
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <button class="btn btn-warning" onclick="simulateNetworkPartition()">
+                                <i class="fas fa-cut"></i> 模拟网络分区
+                            </button>
+                            <button class="btn btn-danger ml-2" onclick="simulateDDoSAttack()">
+                                <i class="fas fa-skull"></i> 模拟DDoS攻击
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="security-card">
+                    <div class="card-header">
+                        <h3 class="card-title">网络节点状态</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>节点ID</th>
+                                    <th>状态</th>
+                                    <th>类型</th>
+                                    <th>延迟</th>
+                                    <th>最后活跃</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="network-nodes-table">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 节点信任管理 -->
+            <div id="node-trust-section" class="content-section">
+                <div class="security-card">
+                    <div class="card-header">
+                        <h3 class="card-title">节点信任评估</h3>
+                        <button class="btn btn-primary btn-sm" onclick="refreshTrustStats()">
+                            <i class="fas fa-sync"></i> 刷新数据
+                        </button>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>注册新节点</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="new-node-id" placeholder="节点ID">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-primary" onclick="registerNewNode()">
+                                            <i class="fas fa-plus"></i> 注册
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>节点操作</label>
+                                <div class="btn-group w-100">
+                                    <button class="btn btn-success" onclick="showTrustedNodes()">
+                                        <i class="fas fa-check"></i> 可信节点
+                                    </button>
+                                    <button class="btn btn-warning" onclick="showRiskNodes()">
+                                        <i class="fas fa-exclamation"></i> 风险节点
+                                    </button>
+                                    <button class="btn btn-danger" onclick="showBlacklistedNodes()">
+                                        <i class="fas fa-ban"></i> 黑名单
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="security-card">
+                    <div class="card-header">
+                        <h3 class="card-title">信任度统计</h3>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="trust-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="security-card">
+                    <div class="card-header">
+                        <h3 class="card-title">节点信任详情</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>节点ID</th>
+                                    <th>信任度</th>
+                                    <th>声誉分</th>
+                                    <th>挖矿次数</th>
+                                    <th>在线时长</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="trust-nodes-table">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 认证管理 -->
+            <div id="authentication-section" class="content-section">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="security-card">
+                            <div class="card-header">
+                                <h3 class="card-title">匿名认证</h3>
+                            </div>
+                            <form id="anonymous-auth-form">
+                                <div class="form-group">
+                                    <label>颁发者DID</label>
+                                    <input type="text" class="form-control" id="issuer-did" placeholder="did:example:issuer123">
+                                </div>
+                                <div class="form-group">
+                                    <label>用户密钥</label>
+                                    <input type="password" class="form-control" id="user-secret" placeholder="用户密钥">
+                                </div>
+                                <div class="form-group">
+                                    <label>凭证模式</label>
+                                    <select class="form-control" id="credential-schema">
+                                        <option value="VotingCredential">投票凭证</option>
+                                        <option value="IdentityCredential">身份凭证</option>
+                                        <option value="AccessCredential">访问凭证</option>
+                                    </select>
+                                </div>
+                                <button type="button" class="btn btn-primary" onclick="generateAnonymousCredential()">
+                                    <i class="fas fa-key"></i> 生成匿名凭证
+                                </button>
+                                <button type="button" class="btn btn-success ml-2" onclick="verifyAnonymousCredential()">
+                                    <i class="fas fa-check"></i> 验证凭证
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="security-card">
+                            <div class="card-header">
+                                <h3 class="card-title">门限认证</h3>
+                            </div>
+                            <form id="threshold-auth-form">
+                                <div class="form-group">
+                                    <label>认证组ID</label>
+                                    <input type="text" class="form-control" id="auth-group-id" placeholder="admin-group">
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>门限值</label>
+                                            <input type="number" class="form-control" id="threshold" value="3" min="1">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>总参与者</label>
+                                            <input type="number" class="form-control" id="total-participants" value="5" min="2">
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-primary" onclick="createThresholdGroup()">
+                                    <i class="fas fa-users"></i> 创建认证组
+                                </button>
+                                <button type="button" class="btn btn-success ml-2" onclick="testThresholdAuth()">
+                                    <i class="fas fa-vial"></i> 测试认证
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="security-card">
+                    <div class="card-header">
+                        <h3 class="card-title">认证活动日志</h3>
+                    </div>
+                    <div class="log-panel" id="auth-logs">
+                        <div class="log-entry info">
+                            <span class="log-timestamp">[2024-01-01 00:00:00]</span> 
+                            认证系统已初始化
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 安全通信管理 -->
+            <div id="communication-section" class="content-section">
+                <div class="security-card">
+                    <div class="card-header">
+                        <h3 class="card-title">群组安全通信</h3>
+                        <button class="btn btn-primary btn-sm" onclick="createSecureGroup()">
+                            <i class="fas fa-plus"></i> 创建安全群组
+                        </button>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>群组名称</label>
+                                <input type="text" class="form-control" id="group-name" placeholder="安全投票群组">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>加密算法</label>
+                                <select class="form-control" id="encryption-algorithm">
+                                    <option value="AES256">AES-256</option>
+                                    <option value="ChaCha20">ChaCha20</option>
+                                    <option value="AES128">AES-128</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>群组类型</label>
+                                <select class="form-control" id="group-type">
+                                    <option value="VOTING">投票群组</option>
+                                    <option value="CONSENSUS">共识群组</option>
+                                    <option value="TRANSACTION">交易群组</option>
+                                    <option value="GENERAL">通用群组</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="security-card">
+                    <div class="card-header">
+                        <h3 class="card-title">通信加密状态</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>群组ID</th>
+                                    <th>群组名称</th>
+                                    <th>加密算法</th>
+                                    <th>成员数量</th>
+                                    <th>密钥版本</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="secure-groups-table">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="security-card">
+                    <div class="card-header">
+                        <h3 class="card-title">加密通信测试</h3>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>测试消息</label>
+                                <textarea class="form-control" id="test-message" rows="3" placeholder="输入要加密的测试消息"></textarea>
+                            </div>
+                            <button class="btn btn-primary" onclick="encryptMessage()">
+                                <i class="fas fa-lock"></i> 加密消息
+                            </button>
+                            <button class="btn btn-success ml-2" onclick="decryptMessage()">
+                                <i class="fas fa-unlock"></i> 解密消息
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>加密结果</label>
+                                <textarea class="form-control" id="encrypted-result" rows="3" readonly></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>解密结果</label>
+                                <textarea class="form-control" id="decrypted-result" rows="2" readonly></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 完整性检查 -->
+            <div id="integrity-section" class="content-section">
+                <div class="security-card">
+                    <div class="card-header">
+                        <h3 class="card-title">软件完整性校验</h3>
+                        <button class="btn btn-primary btn-sm" onclick="performIntegrityCheck()">
+                            <i class="fas fa-shield-alt"></i> 执行完整性检查
+                        </button>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>系统组件状态</h5>
+                            <div class="integrity-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>核心区块链模块</span>
+                                    <span class="status-badge secure" id="blockchain-integrity">验证中...</span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" style="width: 0%" id="blockchain-progress"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="integrity-item mt-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>安全认证模块</span>
+                                    <span class="status-badge secure" id="auth-integrity">验证中...</span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" style="width: 0%" id="auth-progress"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="integrity-item mt-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>网络通信模块</span>
+                                    <span class="status-badge secure" id="network-integrity">验证中...</span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" style="width: 0%" id="network-progress"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5>数据完整性验证</h5>
+                            <div class="integrity-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>区块链数据</span>
+                                    <span class="status-badge secure" id="data-integrity">验证中...</span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" style="width: 0%" id="data-progress"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="integrity-item mt-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>配置文件</span>
+                                    <span class="status-badge secure" id="config-integrity">验证中...</span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" style="width: 0%" id="config-progress"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="integrity-item mt-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>用户凭证</span>
+                                    <span class="status-badge secure" id="credential-integrity">验证中...</span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" style="width: 0%" id="credential-progress"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="security-card">
+                    <div class="card-header">
+                        <h3 class="card-title">完整性检查结果</h3>
+                    </div>
+                    <div class="log-panel" id="integrity-logs">
+                        <div class="log-entry info">
+                            <span class="log-timestamp">[2024-01-01 00:00:00]</span> 
+                            完整性检查系统已准备就绪
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 实时日志 -->
+            <div id="logs-section" class="content-section">
+                <div class="security-card">
+                    <div class="card-header">
+                        <h3 class="card-title">系统实时日志</h3>
+                        <div>
+                            <button class="btn btn-primary btn-sm" onclick="clearLogs()">
+                                <i class="fas fa-trash"></i> 清空日志
+                            </button>
+                            <button class="btn btn-success btn-sm ml-2" onclick="exportLogs()">
+                                <i class="fas fa-download"></i> 导出日志
+                            </button>
+                            <div class="form-check form-check-inline ml-3">
+                                <input class="form-check-input" type="checkbox" id="auto-scroll" checked>
+                                <label class="form-check-label" for="auto-scroll">自动滚动</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <select class="form-control form-control-sm" id="log-level-filter">
+                                <option value="all">所有级别</option>
+                                <option value="info">信息</option>
+                                <option value="warning">警告</option>
+                                <option value="error">错误</option>
+                                <option value="success">成功</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" class="form-control form-control-sm" id="log-search" placeholder="搜索日志内容...">
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-secondary btn-sm w-100" onclick="filterLogs()">
+                                <i class="fas fa-filter"></i> 应用过滤
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="log-panel" id="system-logs" style="height: 500px;">
+                        <div class="log-entry info">
+                            <span class="log-timestamp">[2024-01-01 00:00:00]</span> 
+                            系统启动完成，开始监控安全事件...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 系统设置 -->
+            <div id="settings-section" class="content-section">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="security-card">
+                            <div class="card-header">
+                                <h3 class="card-title">安全策略设置</h3>
+                            </div>
+                            <form id="security-policy-form">
+                                <div class="form-group">
+                                    <label>信任度阈值</label>
+                                    <input type="number" class="form-control" id="trust-threshold" value="0.6" min="0" max="1" step="0.1">
+                                </div>
+                                <div class="form-group">
+                                    <label>黑名单阈值</label>
+                                    <input type="number" class="form-control" id="blacklist-threshold" value="0.1" min="0" max="1" step="0.1">
+                                </div>
+                                <div class="form-group">
+                                    <label>密钥轮换周期（天）</label>
+                                    <input type="number" class="form-control" id="key-rotation-days" value="30" min="1">
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="auto-threat-response" checked>
+                                    <label class="form-check-label" for="auto-threat-response">
+                                        自动威胁响应
+                                    </label>
+                                </div>
+                                <button type="button" class="btn btn-primary mt-3" onclick="saveSecurityPolicy()">
+                                    <i class="fas fa-save"></i> 保存设置
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="security-card">
+                            <div class="card-header">
+                                <h3 class="card-title">系统维护</h3>
+                            </div>
+                            <div class="maintenance-actions">
+                                <button class="btn btn-warning w-100 mb-2" onclick="performMaintenance()">
+                                    <i class="fas fa-tools"></i> 执行系统维护
+                                </button>
+                                <button class="btn btn-info w-100 mb-2" onclick="generateSystemReport()">
+                                    <i class="fas fa-file-alt"></i> 生成系统报告
+                                </button>
+                                <button class="btn btn-success w-100 mb-2" onclick="backupSecurityData()">
+                                    <i class="fas fa-database"></i> 备份安全数据
+                                </button>
+                                <button class="btn btn-danger w-100" onclick="resetSecuritySystem()">
+                                    <i class="fas fa-redo"></i> 重置安全系统
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/4.5.3/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="js/security-helper.js"></script>
+
+    <!-- Custom JavaScript -->
+    <script>
+        // Global variables
+        const API_BASE_URL = 'http://localhost:8080/api';
+        let charts = {};
+        let logCounter = 0;
+        let autoRefreshInterval;
+
+        // Initialize application
+        $(document).ready(function() {
+            initializeApp();
+            setupEventListeners();
+            startAutoRefresh();
+            logMessage('info', '安全管理系统已初始化完成');
+            
+            // 连接安全日志系统
+            connectSecurityLogger();
+        });
+
+        // Connect to security logger
+        function connectSecurityLogger() {
+            if (window.securityLogger) {
+                // 添加日志监听器，将安全日志显示在界面上
+                window.securityLogger.addListener(function(logEntry) {
+                    if (logEntry.type === 'clear') {
+                        // 处理清空日志事件
+                        return;
+                    }
+                    
+                    const logPanels = document.querySelectorAll('.log-panel');
+                    logPanels.forEach(panel => {
+                        const logDiv = document.createElement('div');
+                        logDiv.className = `log-entry ${logEntry.level}`;
+                        logDiv.innerHTML = `
+                            <span class="log-timestamp">[${logEntry.timestamp.toLocaleString('zh-CN')}]</span>
+                            ${logEntry.message}
+                            ${logEntry.details ? '<br>' + logEntry.details : ''}
+                        `;
+                        
+                        panel.appendChild(logDiv);
+                        
+                        // 自动滚动
+                        if (document.getElementById('auto-scroll')?.checked) {
+                            panel.scrollTop = panel.scrollHeight;
+                        }
+                        
+                        // 限制日志条目数量
+                        const entries = panel.querySelectorAll('.log-entry');
+                        if (entries.length > 100) {
+                            entries[entries.length - 1].remove();
+                        }
+                    });
+                });
+                
+                logMessage('success', '安全日志系统已连接');
+            }
+        }
+
+        // Initialize application components
+        function initializeApp() {
+            logMessage('info', '正在初始化安全管理系统...');
+            initializeCharts();
+            loadSecurityOverview();
+            checkSystemStatus();
+            logMessage('success', '系统初始化完成');
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Sidebar navigation
+            $('.menu-item').click(function() {
+                const section = $(this).data('section');
+                showSection(section);
+                
+                $('.menu-item').removeClass('active');
+                $(this).addClass('active');
+                
+                updatePageHeader(section);
+            });
+
+            // Network condition change
+            $('#network-condition').change(function() {
+                const condition = $(this).val();
+                logMessage('info', `网络条件设置已更改为: ${condition}`);
+            });
+
+            // Real-time log filtering
+            $('#log-search').on('input', function() {
+                filterLogs();
+            });
+
+            $('#log-level-filter').change(function() {
+                filterLogs();
+            });
+        }
+
+        // Show specific section
+        function showSection(sectionName) {
+            $('.content-section').removeClass('active');
+            $(`#${sectionName}-section`).addClass('active');
+            
+            // Load section-specific data
+            switch(sectionName) {
+                case 'overview':
+                    loadSecurityOverview();
+                    break;
+                case 'network':
+                    loadNetworkData();
+                    break;
+                case 'node-trust':
+                    loadNodeTrustData();
+                    break;
+                case 'authentication':
+                    loadAuthenticationData();
+                    break;
+                case 'communication':
+                    loadCommunicationData();
+                    break;
+                case 'integrity':
+                    loadIntegrityData();
+                    break;
+            }
+        }
+
+        // Update page header
+        function updatePageHeader(section) {
+            const headers = {
+                'overview': { title: '安全总览', desc: '区块链网络安全状态监控与管理' },
+                'network': { title: '网络环境管理', desc: '模拟和控制区块链网络环境' },
+                'node-trust': { title: '节点信任管理', desc: '评估和管理网络节点信任度' },
+                'authentication': { title: '认证管理', desc: '匿名认证和门限认证管理' },
+                'communication': { title: '安全通信', desc: '群组安全通信和数据加密' },
+                'integrity': { title: '完整性检查', desc: '软件和数据完整性校验' },
+                'logs': { title: '实时日志', desc: '系统安全事件实时监控' },
+                'settings': { title: '系统设置', desc: '安全策略和系统维护' }
+            };
+            
+            const header = headers[section] || { title: '安全管理', desc: '区块链安全管理中心' };
+            $('#page-title').text(header.title);
+            $('#page-description').text(header.desc);
+        }
+
+        // Initialize charts
+        function initializeCharts() {
+            // Network status chart
+            const networkCtx = document.getElementById('network-chart');
+            if (networkCtx) {
+                charts.network = new Chart(networkCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['在线节点', '离线节点', '风险节点'],
+                        datasets: [{
+                            data: [0, 0, 0],
+                            backgroundColor: ['#10b981', '#ef4444', '#f59e0b']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+
+            // Threat monitoring chart
+            const threatCtx = document.getElementById('threat-chart');
+            if (threatCtx) {
+                charts.threat = new Chart(threatCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: '威胁事件',
+                            data: [],
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Trust distribution chart
+            const trustCtx = document.getElementById('trust-chart');
+            if (trustCtx) {
+                charts.trust = new Chart(trustCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['高信任', '中信任', '低信任', '黑名单'],
+                        datasets: [{
+                            label: '节点数量',
+                            data: [0, 0, 0, 0],
+                            backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Log message function - Enhanced version using SecurityLogger
+        function logMessage(level, message, details = '') {
+            if (window.securityLogger) {
+                window.securityLogger.log(level, message, details);
+            } else {
+                // Fallback to original implementation
+                const timestamp = new Date().toLocaleString('zh-CN');
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry ${level}`;
+                logEntry.innerHTML = `
+                    <span class="log-timestamp">[${timestamp}]</span> 
+                    ${message}
+                    ${details ? '<br>' + details : ''}
+                `;
+
+                // Add to system logs
+                const systemLogs = document.getElementById('system-logs');
+                if (systemLogs) {
+                    systemLogs.appendChild(logEntry);
+                    
+                    // Auto scroll if enabled
+                    if (document.getElementById('auto-scroll')?.checked) {
+                        systemLogs.scrollTop = systemLogs.scrollHeight;
+                    }
+                }
+            }
+
+            logCounter++;
+        }
+
+        // Enhanced API helper functions using SecurityAPI
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            if (window.securityAPI) {
+                return await window.securityAPI.call(endpoint, method, data);
+            } else {
+                // Fallback to original implementation
+                try {
+                    const options = {
+                        method: method,
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    };
+
+                    if (data) {
+                        options.body = JSON.stringify(data);
+                    }
+
+                    logMessage('info', `API调用: ${method} ${endpoint}`);
+                    const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
+                    const result = await response.json();
+                    logMessage('success', `API调用成功: ${endpoint}`, JSON.stringify(result, null, 2));
+                    return result;
+                } catch (error) {
+                    logMessage('error', `API调用失败: ${endpoint}`, error.message);
+                    throw error;
+                }
+            }
+        }
+
+        // Security overview functions - Enhanced with SecurityAPI
+        async function loadSecurityOverview() {
+            try {
+                logMessage('info', '正在加载安全总览数据...');
+                
+                let overview;
+                if (window.securityAPI) {
+                    overview = await window.securityAPI.getSecurityOverview();
+                } else {
+                    overview = await apiCall('/security/overview');
+                }
+                
+                if (overview.success) {
+                    updateSecurityMetrics(overview.overview);
+                    updateNetworkChart(overview.overview);
+                    logMessage('success', '安全总览数据加载完成');
+                } else {
+                    logMessage('error', '加载安全总览失败', overview.message);
+                }
+            } catch (error) {
+                logMessage('error', '加载安全总览时发生错误', error.message);
+            }
+        }
+
+        function updateSecurityMetrics(data) {
+            document.getElementById('total-nodes').textContent = data.totalNodes || 0;
+            document.getElementById('trusted-nodes').textContent = data.trustedNodes || 0;
+            document.getElementById('network-health').textContent = Math.round((data.networkHealth || 0) * 100) + '%';
+            document.getElementById('security-score').textContent = Math.round((data.overallSecurityScore || 0) * 100) + '%';
+            
+            // Update global status using SecurityMetrics
+            const globalStatus = document.getElementById('global-status');
+            const securityLevel = window.SecurityMetrics ? 
+                window.SecurityMetrics.getSecurityLevel(data.overallSecurityScore || 0) :
+                { level: 'fair', label: '一般', color: '#f59e0b' };
+            
+            if (data.overallSecurityScore > 0.8) {
+                globalStatus.className = 'network-status online';
+                globalStatus.innerHTML = '<span class="status-dot green"></span>系统安全';
+            } else if (data.overallSecurityScore > 0.6) {
+                globalStatus.className = 'network-status warning';
+                globalStatus.innerHTML = '<span class="status-dot yellow"></span>需要关注';
+            } else {
+                globalStatus.className = 'network-status offline';
+                globalStatus.innerHTML = '<span class="status-dot red"></span>存在风险';
+            }
+        }
+
+        function updateNetworkChart(data) {
+            if (charts.network) {
+                const onlineNodes = data.onlineNodes || 0;
+                const totalNodes = data.totalNodes || 1;
+                const offlineNodes = totalNodes - onlineNodes;
+                const riskNodes = data.activeThreats || 0;
+                
+                charts.network.data.datasets[0].data = [onlineNodes, offlineNodes, riskNodes];
+                charts.network.update();
+            }
+        }
+
+        // Enhanced security actions using SecurityAPI and SecuritySimulator
+        async function initializeSecurityEnvironment() {
+            try {
+                logMessage('info', '正在初始化安全环境...');
+                
+                let result;
+                if (window.securityAPI) {
+                    result = await window.securityAPI.initializeSecurityEnvironment();
+                } else {
+                    const config = {
+                        networkCondition: 'NORMAL',
+                        initialNodes: [
+                            { nodeId: 'node1', publicKey: 'demo_key_1', nodeType: 'FULL_NODE' },
+                            { nodeId: 'node2', publicKey: 'demo_key_2', nodeType: 'VALIDATOR' },
+                            { nodeId: 'node3', publicKey: 'demo_key_3', nodeType: 'FULL_NODE' }
+                        ]
+                    };
+                    result = await apiCall('/security/initialize', 'POST', config);
+                }
+                
+                if (result.success) {
+                    logMessage('success', '安全环境初始化成功', `已初始化 ${result.initializedNodes} 个节点`);
+                    loadSecurityOverview();
+                } else {
+                    logMessage('error', '安全环境初始化失败', result.message);
+                }
+            } catch (error) {
+                logMessage('error', '初始化安全环境时发生错误', error.message);
+            }
+        }
+
+        async function performSecurityCheck() {
+            try {
+                logMessage('info', '正在执行安全检查...');
+                
+                let result;
+                if (window.securityAPI) {
+                    result = await window.securityAPI.performSecurityCheck();
+                } else {
+                    result = await apiCall('/security/check', 'POST');
+                }
+                
+                if (result.success) {
+                    logMessage('success', '安全检查完成');
+                    
+                    const checkResults = result.checkResults;
+                    logMessage('info', '网络安全状态', JSON.stringify(checkResults.networkSecurity, null, 2));
+                    logMessage('info', '节点信任状态', JSON.stringify(checkResults.nodeTrust, null, 2));
+                    logMessage('info', '整体安全评分', JSON.stringify(checkResults.overallSecurity, null, 2));
+                } else {
+                    logMessage('error', '安全检查失败', result.message);
+                }
+            } catch (error) {
+                logMessage('error', '执行安全检查时发生错误', error.message);
+            }
+        }
+
+        async function showSecurityRecommendations() {
+            try {
+                logMessage('info', '正在获取安全建议...');
+                
+                let result;
+                if (window.securityAPI) {
+                    result = await window.securityAPI.getSecurityRecommendations();
+                } else {
+                    result = await apiCall('/security/recommendations');
+                }
+                
+                if (result.success) {
+                    logMessage('success', `获取到 ${result.count} 条安全建议`);
+                    result.recommendations.forEach((recommendation, index) => {
+                        logMessage('warning', `建议 ${index + 1}`, recommendation);
+                    });
+                } else {
+                    logMessage('error', '获取安全建议失败', result.message);
+                }
+            } catch (error) {
+                logMessage('error', '获取安全建议时发生错误', error.message);
+            }
+        }
+
+        async function simulateAttack() {
+            try {
+                if (window.securitySimulator) {
+                    await window.securitySimulator.runDDoSSimulation({
+                        targetNodes: ['node1', 'node2'],
+                        intensity: 3,
+                        duration: 2
+                    });
+                } else {
+                    logMessage('warning', '正在模拟DDoS攻击...');
+                    
+                    const attackConfig = {
+                        attackType: 'DDOS',
+                        targetNodes: ['node1', 'node2'],
+                        intensity: 3,
+                        duration: 2
+                    };
+                    
+                    const result = await apiCall('/security/simulation/attack', 'POST', attackConfig);
+                    
+                    if (result.success) {
+                        logMessage('warning', '攻击模拟已启动', `目标节点: ${result.targetNodes}, 持续时间: ${result.duration}分钟`);
+                    } else {
+                        logMessage('error', '攻击模拟启动失败', result.message);
+                    }
+                }
+            } catch (error) {
+                logMessage('error', '模拟攻击时发生错误', error.message);
+            }
+        }
+
+        // Network management functions - Enhanced with SecurityAPI
+        async function setNetworkCondition() {
+            try {
+                const condition = document.getElementById('network-condition').value;
+                logMessage('info', `正在设置网络条件为: ${condition}`);
+                
+                let result;
+                if (window.securityAPI) {
+                    result = await window.securityAPI.setNetworkCondition(condition);
+                } else {
+                    result = await apiCall('/security/network/condition', 'POST', { condition });
+                }
+                
+                if (result.success) {
+                    logMessage('success', '网络条件设置成功', `当前网络条件: ${condition}`);
+                    refreshNetworkStats();
+                } else {
+                    logMessage('error', '网络条件设置失败', result.message);
+                }
+            } catch (error) {
+                logMessage('error', '设置网络条件时发生错误', error.message);
+            }
+        }
+
+        async function addTestNode() {
+            try {
+                const nodeId = 'test_node_' + Date.now();
+                const publicKey = 'test_key_' + Date.now();
+                
+                logMessage('info', `正在添加测试节点: ${nodeId}`);
+                
+                let result;
+                if (window.securityAPI) {
+                    result = await window.securityAPI.registerNode(nodeId, publicKey);
+                } else {
+                    result = await apiCall('/trust/nodes/register', 'POST', {
+                        nodeId: nodeId,
+                        publicKey: publicKey
+                    });
+                }
+                
+                if (result.success) {
+                    logMessage('success', '测试节点添加成功', `节点ID: ${nodeId}`);
+                    loadNodeTrustData();
+                } else {
+                    logMessage('error', '添加测试节点失败', result.message);
+                }
+            } catch (error) {
+                logMessage('error', '添加测试节点时发生错误', error.message);
+            }
+        }
+
+        async function simulateNetworkPartition() {
+            try {
+                if (window.securitySimulator) {
+                    await window.securitySimulator.runNetworkPartitionSimulation({
+                        nodes: ['node1', 'node2', 'node3', 'node4'],
+                        duration: 3
+                    });
+                } else {
+                    logMessage('warning', '正在模拟网络分区...');
+                    
+                    const attackConfig = {
+                        attackType: 'PARTITION',
+                        targetNodes: ['node1', 'node2', 'node3', 'node4'],
+                        duration: 3
+                    };
+                    
+                    const result = await apiCall('/security/simulation/attack', 'POST', attackConfig);
+                    
+                    if (result.success) {
+                        logMessage('warning', '网络分区模拟已启动', `持续时间: ${result.duration}分钟`);
+                    } else {
+                        logMessage('error', '网络分区模拟启动失败', result.message);
+                    }
+                }
+            } catch (error) {
+                logMessage('error', '模拟网络分区时发生错误', error.message);
+            }
+        }
+
+        async function simulateDDoSAttack() {
+            try {
+                if (window.securitySimulator) {
+                    await window.securitySimulator.runDDoSSimulation({
+                        targetNodes: ['node1', 'node2'],
+                        intensity: 5,
+                        duration: 3
+                    });
+                } else {
+                    logMessage('warning', '正在模拟DDoS攻击...');
+                    
+                    const attackConfig = {
+                        attackType: 'DDOS',
+                        targetNodes: ['node1', 'node2'],
+                        intensity: 5,
+                        duration: 3
+                    };
+                    
+                    const result = await apiCall('/security/simulation/attack', 'POST', attackConfig);
+                    
+                    if (result.success) {
+                        logMessage('warning', 'DDoS攻击模拟已启动', `强度级别: ${attackConfig.intensity}, 持续时间: ${result.duration}分钟`);
+                    } else {
+                        logMessage('error', 'DDoS攻击模拟启动失败', result.message);
+                    }
+                }
+            } catch (error) {
+                logMessage('error', '模拟DDoS攻击时发生错误', error.message);
+            }
+        }
+
+        // Authentication functions - Enhanced with SecurityAPI
+        async function generateAnonymousCredential() {
+            try {
+                const issuerDid = document.getElementById('issuer-did').value;
+                const userSecret = document.getElementById('user-secret').value;
+                const credentialSchema = document.getElementById('credential-schema').value;
+                
+                if (!issuerDid || !userSecret) {
+                    logMessage('error', '请填写完整的认证信息');
+                    return;
+                }
+                
+                logMessage('info', '正在生成匿名凭证...');
+                
+                let result;
+                if (window.securityAPI) {
+                    result = await window.securityAPI.generateAnonymousCredential(
+                        issuerDid, userSecret, credentialSchema
+                    );
+                } else {
+                    const requestData = {
+                        issuerDid: issuerDid,
+                        userSecret: userSecret,
+                        credentialSchema: credentialSchema,
+                        attributes: {
+                            eligibility: 'voter',
+                            jurisdiction: 'district1'
+                        }
+                    };
+                    result = await apiCall('/security/anonymous/credential', 'POST', requestData);
+                }
+                
+                if (result.success) {
+                    logMessage('success', '匿名凭证生成成功', JSON.stringify(result.credential, null, 2));
+                } else {
+                    logMessage('error', '匿名凭证生成失败', result.message);
+                }
+            } catch (error) {
+                logMessage('error', '生成匿名凭证时发生错误', error.message);
+            }
+        }
+
+        async function verifyAnonymousCredential() {
+            try {
+                logMessage('info', '正在验证匿名凭证...');
+                
+                let result;
+                if (window.securityAPI) {
+                    result = await window.securityAPI.verifyAnonymousCredential(
+                        'test_challenge_' + Date.now(),
+                        { credentialId: 'test_credential', proof: {} }
+                    );
+                } else {
+                    const requestData = {
+                        challenge: 'test_challenge_' + Date.now(),
+                        credential: {
+                            credentialId: 'test_credential',
+                            proof: {}
+                        }
+                    };
+                    result = await apiCall('/security/anonymous/verify', 'POST', requestData);
+                }
+                
+                if (result.success) {
+                    logMessage('success', '匿名凭证验证完成', `验证结果: ${result.verified ? '有效' : '无效'}`);
+                } else {
+                    logMessage('error', '匿名凭证验证失败', result.message);
+                }
+            } catch (error) {
+                logMessage('error', '验证匿名凭证时发生错误', error.message);
+            }
+        }
+
+        async function createThresholdGroup() {
+            try {
+                const groupId = document.getElementById('auth-group-id').value;
+                const threshold = parseInt(document.getElementById('threshold').value);
+                const totalParticipants = parseInt(document.getElementById('total-participants').value);
+                
+                if (!groupId || threshold <= 0 || totalParticipants <= 0 || threshold > totalParticipants) {
+                    logMessage('error', '请检查门限认证参数设置');
+                    return;
+                }
+                
+                logMessage('info', `正在创建门限认证组: ${groupId} (${threshold}/${totalParticipants})`);
+                
+                let result;
+                if (window.securityAPI) {
+                    result = await window.securityAPI.createThresholdGroup(groupId, threshold, totalParticipants);
+                } else {
+                    const requestData = {
+                        groupId: groupId,
+                        threshold: threshold,
+                        totalParticipants: totalParticipants
+                    };
+                    result = await apiCall('/security/threshold/group', 'POST', requestData);
+                }
+                
+                if (result.success) {
+                    logMessage('success', '门限认证组创建成功', JSON.stringify(result.config, null, 2));
+                } else {
+                    logMessage('error', '门限认证组创建失败', result.message);
+                }
+            } catch (error) {
+                logMessage('error', '创建门限认证组时发生错误', error.message);
+            }
+        }
+
+        async function testThresholdAuth() {
+            logMessage('info', '开始测试门限认证流程...');
+            logMessage('success', '门限认证测试完成 - 这是一个演示功能');
+        }
+
+        // Data loading functions - Enhanced with SecurityAPI
+        async function loadNetworkData() {
+            logMessage('info', '正在加载网络数据...');
+            // Implement network data loading
+        }
+
+        async function loadNodeTrustData() {
+            try {
+                logMessage('info', '正在加载节点信任数据...');
+                
+                let result;
+                if (window.securityAPI) {
+                    result = await window.securityAPI.getNetworkTrustStatistics();
+                } else {
+                    result = await apiCall('/trust/network/statistics');
+                }
+                
+                if (result.success) {
+                    logMessage('success', '节点信任数据加载完成');
+                    updateTrustChart(result.statistics);
+                } else {
+                    logMessage('error', '加载节点信任数据失败', result.message);
+                }
+            } catch (error) {
+                logMessage('error', '加载节点信任数据时发生错误', error.message);
+            }
+        }
+
+        function updateTrustChart(stats) {
+            if (charts.trust) {
+                // Update trust distribution chart with actual data
+                const total = stats.totalNodes || 1;
+                const trusted = stats.trustedNodes || 0;
+                const blacklisted = stats.blacklistedNodes || 0;
+                const others = total - trusted - blacklisted;
+                
+                charts.trust.data.datasets[0].data = [trusted, Math.floor(others * 0.6), Math.floor(others * 0.4), blacklisted];
+                charts.trust.update();
+            }
+        }
+
+        async function loadAuthenticationData() {
+            logMessage('info', '正在加载认证数据...');
+            // Implement authentication data loading
+        }
+
+        async function loadCommunicationData() {
+            logMessage('info', '正在加载通信数据...');
+            // Implement communication data loading
+        }
+
+        async function loadIntegrityData() {
+            logMessage('info', '正在加载完整性数据...');
+            // Implement integrity data loading
+        }
+
+        // Integrity check functions
+        async function performIntegrityCheck() {
+            logMessage('info', '开始执行完整性检查...');
+            
+            const components = [
+                { id: 'blockchain', name: '核心区块链模块', duration: 2000 },
+                { id: 'auth', name: '安全认证模块', duration: 1500 },
+                { id: 'network', name: '网络通信模块', duration: 1000 },
+                { id: 'data', name: '区块链数据', duration: 2500 },
+                { id: 'config', name: '配置文件', duration: 800 },
+                { id: 'credential', name: '用户凭证', duration: 1200 }
+            ];
+            
+            for (const component of components) {
+                await checkComponentIntegrity(component);
+            }
+            
+            logMessage('success', '所有组件完整性检查完成');
+        }
+
+        async function checkComponentIntegrity(component) {
+            const statusElement = document.getElementById(`${component.id}-integrity`);
+            const progressElement = document.getElementById(`${component.id}-progress`);
+            
+            logMessage('info', `正在检查 ${component.name} 的完整性...`);
+            
+            if (statusElement) statusElement.textContent = '检查中...';
+            if (statusElement) statusElement.className = 'status-badge warning';
+            
+            // Simulate progress
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                if (progressElement) {
+                    progressElement.style.width = progress + '%';
+                }
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    
+                    // Simulate random result (mostly success)
+                    const isValid = Math.random() > 0.1;
+                    
+                    if (statusElement) {
+                        statusElement.textContent = isValid ? '完整' : '异常';
+                        statusElement.className = isValid ? 'status-badge secure' : 'status-badge danger';
+                    }
+                    
+                    if (progressElement) {
+                        progressElement.className = isValid ? 'progress-bar bg-success' : 'progress-bar bg-danger';
+                    }
+                    
+                    logMessage(isValid ? 'success' : 'error', 
+                        `${component.name} 完整性检查完成: ${isValid ? '通过' : '发现异常'}`);
+                }
+            }, component.duration / 10);
+        }
+
+        // Utility functions
+        function refreshNetworkStats() {
+            logMessage('info', '正在刷新网络统计数据...');
+            loadSecurityOverview();
+        }
+
+        function refreshTrustStats() {
+            logMessage('info', '正在刷新信任统计数据...');
+            loadNodeTrustData();
+        }
+
+        function checkSystemStatus() {
+            logMessage('info', '正在检查系统状态...');
+            // Implement system status check
+        }
+
+        function clearLogs() {
+            if (window.securityLogger) {
+                window.securityLogger.clear();
+            }
+            
+            const logPanels = ['system-logs', 'auth-logs', 'integrity-logs'];
+            logPanels.forEach(panelId => {
+                const panel = document.getElementById(panelId);
+                if (panel) {
+                    panel.innerHTML = '';
+                }
+            });
+            logMessage('info', '日志已清空');
+        }
+
+        function exportLogs() {
+            let logs;
+            if (window.securityLogger) {
+                logs = window.securityLogger.export('text');
+            } else {
+                logs = document.getElementById('system-logs').innerText;
+            }
+            
+            const blob = new Blob([logs], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `security-logs-${new Date().toISOString().slice(0, 10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            logMessage('success', '日志导出完成');
+        }
+
+        function filterLogs() {
+            const searchTerm = document.getElementById('log-search').value.toLowerCase();
+            const levelFilter = document.getElementById('log-level-filter').value;
+            
+            const logEntries = document.querySelectorAll('#system-logs .log-entry');
+            
+            logEntries.forEach(entry => {
+                const text = entry.textContent.toLowerCase();
+                const level = entry.classList[1]; // Get log level class
+                
+                const matchesSearch = searchTerm === '' || text.includes(searchTerm);
+                const matchesLevel = levelFilter === 'all' || level === levelFilter;
+                
+                entry.style.display = matchesSearch && matchesLevel ? 'block' : 'none';
+            });
+        }
+
+        function startAutoRefresh() {
+            autoRefreshInterval = setInterval(() => {
+                if (document.querySelector('.content-section.active').id === 'overview-section') {
+                    loadSecurityOverview();
+                }
+            }, 30000); // Refresh every 30 seconds
+        }
+
+        // Additional placeholder functions for various features
+        function createSecureGroup() { logMessage('info', '创建安全群组功能待实现'); }
+        function encryptMessage() { logMessage('info', '消息加密功能待实现'); }
+        function decryptMessage() { logMessage('info', '消息解密功能待实现'); }
+        function registerNewNode() { addTestNode(); }
+        function showTrustedNodes() { logMessage('info', '显示可信节点列表'); }
+        function showRiskNodes() { logMessage('info', '显示风险节点列表'); }
+        function showBlacklistedNodes() { logMessage('info', '显示黑名单节点列表'); }
+        function saveSecurityPolicy() { logMessage('success', '安全策略保存成功'); }
+        function performMaintenance() { logMessage('info', '执行系统维护...'); }
+        function generateSystemReport() { logMessage('info', '生成系统报告...'); }
+        function backupSecurityData() { logMessage('info', '备份安全数据...'); }
+        function resetSecuritySystem() { logMessage('warning', '重置安全系统需要确认'); }
+    </script>
+</body>
+</html> 

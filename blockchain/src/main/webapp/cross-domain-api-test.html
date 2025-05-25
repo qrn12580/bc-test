@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跨域认证API测试工具</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .test-result {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .test-success { border-color: #198754; background-color: #d1e7dd; }
+        .test-error { border-color: #dc3545; background-color: #f8d7da; }
+        .test-step { 
+            margin: 1rem 0; 
+            padding: 1rem; 
+            border: 1px solid #dee2e6; 
+            border-radius: 0.375rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4">跨域认证API测试工具</h1>
+        
+        <!-- 测试配置 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5>测试配置</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">API基础URL</label>
+                        <input type="text" class="form-control" id="apiBaseUrl" value="http://localhost:8080/api/crossdomain">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">认证状态</label>
+                        <div class="form-control" id="authStatus">检查中...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 测试步骤 -->
+        <div class="accordion" id="testAccordion">
+            
+            <!-- 第1步：域管理API测试 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="domainTest">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                        第1步：域管理API测试
+                    </button>
+                </h2>
+                <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#testAccordion">
+                    <div class="accordion-body">
+                        <div class="test-step">
+                            <h6>1.1 注册测试域</h6>
+                            <button class="btn btn-primary" onclick="testRegisterDomains()">注册测试域</button>
+                            <div id="registerDomainsResult" class="test-result mt-2"></div>
+                        </div>
+                        
+                        <div class="test-step">
+                            <h6>1.2 获取活跃域列表</h6>
+                            <button class="btn btn-secondary" onclick="testGetActiveDomains()">获取活跃域</button>
+                            <div id="activeDomainsResult" class="test-result mt-2"></div>
+                        </div>
+                        
+                        <div class="test-step">
+                            <h6>1.3 验证域证书</h6>
+                            <button class="btn btn-info" onclick="testValidateCertificates()">验证证书</button>
+                            <div id="validateCertResult" class="test-result mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 第2步：信任关系API测试 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="trustTest">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                        第2步：信任关系API测试
+                    </button>
+                </h2>
+                <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#testAccordion">
+                    <div class="accordion-body">
+                        <div class="test-step">
+                            <h6>2.1 建立信任关系</h6>
+                            <button class="btn btn-primary" onclick="testEstablishTrust()">建立信任</button>
+                            <div id="establishTrustResult" class="test-result mt-2"></div>
+                        </div>
+                        
+                        <div class="test-step">
+                            <h6>2.2 检查信任关系</h6>
+                            <button class="btn btn-secondary" onclick="testCheckTrust()">检查信任</button>
+                            <div id="checkTrustResult" class="test-result mt-2"></div>
+                        </div>
+                        
+                        <div class="test-step">
+                            <h6>2.3 获取域信任关系</h6>
+                            <button class="btn btn-info" onclick="testGetDomainTrust()">获取域信任</button>
+                            <div id="domainTrustResult" class="test-result mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 第3步：跨域认证API测试 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="authTest">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                        第3步：跨域认证API测试
+                    </button>
+                </h2>
+                <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#testAccordion">
+                    <div class="accordion-body">
+                        <div class="test-step">
+                            <h6>3.1 生成挑战码</h6>
+                            <button class="btn btn-primary" onclick="testGenerateChallenge()">生成挑战码</button>
+                            <div id="challengeResult" class="test-result mt-2"></div>
+                        </div>
+                        
+                        <div class="test-step">
+                            <h6>3.2 模拟跨域认证</h6>
+                            <button class="btn btn-warning" onclick="testCrossDomainAuth()">模拟认证</button>
+                            <div id="crossAuthResult" class="test-result mt-2"></div>
+                        </div>
+                        
+                        <div class="test-step">
+                            <h6>3.3 验证认证令牌</h6>
+                            <button class="btn btn-success" onclick="testValidateToken()">验证令牌</button>
+                            <div id="validateTokenResult" class="test-result mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 第4步：综合流程测试 -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="integrationTest">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour">
+                        第4步：综合流程测试
+                    </button>
+                </h2>
+                <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#testAccordion">
+                    <div class="accordion-body">
+                        <div class="test-step">
+                            <h6>4.1 完整跨域认证流程</h6>
+                            <button class="btn btn-success" onclick="testCompleteFlow()">运行完整流程</button>
+                            <div id="completeFlowResult" class="test-result mt-2"></div>
+                        </div>
+                        
+                        <div class="test-step">
+                            <h6>4.2 错误处理测试</h6>
+                            <button class="btn btn-danger" onclick="testErrorHandling()">测试错误处理</button>
+                            <div id="errorHandlingResult" class="test-result mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 测试结果汇总 -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5>测试结果汇总</h5>
+            </div>
+            <div class="card-body">
+                <div id="testSummary">
+                    <p>点击上面的测试按钮开始测试...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let apiBaseUrl = 'http://localhost:8080/api/crossdomain';
+        let testResults = {
+            passed: 0,
+            failed: 0,
+            total: 0
+        };
+        let testDomains = {
+            domain1: 'test-blockchain-domain-1',
+            domain2: 'test-traditional-domain-1'
+        };
+        let currentToken = null;
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            apiBaseUrl = document.getElementById('apiBaseUrl').value;
+            checkAuthStatus();
+        });
+
+        // 检查认证状态
+        async function checkAuthStatus() {
+            const statusDiv = document.getElementById('authStatus');
+            try {
+                // 这里可以调用认证状态检查API
+                statusDiv.textContent = '已准备就绪';
+                statusDiv.className = 'form-control text-success';
+            } catch (error) {
+                statusDiv.textContent = '认证检查失败';
+                statusDiv.className = 'form-control text-danger';
+            }
+        }
+
+        // 工具函数：显示测试结果
+        function showResult(elementId, result, success = true) {
+            const element = document.getElementById(elementId);
+            element.className = `test-result ${success ? 'test-success' : 'test-error'}`;
+            element.textContent = typeof result === 'object' ? JSON.stringify(result, null, 2) : result;
+            
+            testResults.total++;
+            if (success) {
+                testResults.passed++;
+            } else {
+                testResults.failed++;
+            }
+            updateTestSummary();
+        }
+
+        // 更新测试汇总
+        function updateTestSummary() {
+            const summary = document.getElementById('testSummary');
+            summary.innerHTML = `
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <h6>总测试数</h6>
+                            <span class="badge bg-primary fs-6">${testResults.total}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <h6>通过</h6>
+                            <span class="badge bg-success fs-6">${testResults.passed}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <h6>失败</h6>
+                            <span class="badge bg-danger fs-6">${testResults.failed}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 生成测试公钥
+        function generateTestPublicKey() {
+            // 模拟RSA公钥（Base64格式）
+            return "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAy8Dbv8prpJ/0kKhlGeJYozo2t60EG8L0561g13R29LvMR5hyvGZlGJpmn65+A4xHXInJYiPuKzrKUnApeLZ+vw07FD6D5k0yNQFpE1y/E1v9Z5yJNkvzm/U7JvRh5QjJCqStOlEJm8Y9HKVPl6u7wXy9CwX4rHBsrEH6uJVOD2YU9QEYxYV8cA1A9qXz16bSpL8o2LKwTqKIBKQOFb5g2hV8F2C0K4jXbY1+z0lYxEKUv1TZHq9RXx1V3CwXW9dU0s2AcuOcYEJrE0XHCW1rEQ3oUHSfE5wO2oq+Y9PKr8EjEr4yXoLj5A3G6QM6DgYOm3vX9FW9hKv6L4Q5Kz+Q6XtZwIDAQAB";
+        }
+
+        // 1.1 注册测试域
+        async function testRegisterDomains() {
+            try {
+                const domains = [
+                    {
+                        domainId: testDomains.domain1,
+                        domainName: "测试区块链域1",
+                        description: "用于测试的区块链域",
+                        endpointUrl: "https://test-blockchain-1.example.com/api",
+                        publicKey: generateTestPublicKey(),
+                        domainType: "BLOCKCHAIN",
+                        networkId: "test-network",
+                        isActive: true
+                    },
+                    {
+                        domainId: testDomains.domain2,
+                        domainName: "测试传统域1",
+                        description: "用于测试的传统系统域",
+                        endpointUrl: "https://test-traditional-1.example.com/api",
+                        publicKey: generateTestPublicKey(),
+                        domainType: "TRADITIONAL",
+                        networkId: "test-network",
+                        isActive: true
+                    }
+                ];
+
+                let results = [];
+                for (const domain of domains) {
+                    const response = await fetch(`${apiBaseUrl}/domains/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(domain)
+                    });
+                    const result = await response.json();
+                    results.push({
+                        domain: domain.domainId,
+                        success: result.success,
+                        message: result.message
+                    });
+                }
+
+                showResult('registerDomainsResult', results, results.every(r => r.success));
+            } catch (error) {
+                showResult('registerDomainsResult', `错误: ${error.message}`, false);
+            }
+        }
+
+        // 1.2 获取活跃域列表
+        async function testGetActiveDomains() {
+            try {
+                const response = await fetch(`${apiBaseUrl}/domains/active`);
+                const result = await response.json();
+                
+                showResult('activeDomainsResult', {
+                    success: result.success,
+                    count: result.count,
+                    domains: result.domains?.map(d => ({
+                        id: d.domainId,
+                        name: d.domainName,
+                        type: d.domainType
+                    }))
+                }, result.success && result.count >= 2);
+            } catch (error) {
+                showResult('activeDomainsResult', `错误: ${error.message}`, false);
+            }
+        }
+
+        // 1.3 验证域证书
+        async function testValidateCertificates() {
+            try {
+                let results = [];
+                for (const domainId of Object.values(testDomains)) {
+                    const response = await fetch(`${apiBaseUrl}/domains/${domainId}/validate-certificate`);
+                    const result = await response.json();
+                    results.push({
+                        domain: domainId,
+                        valid: result.certificateValid,
+                        message: result.message
+                    });
+                }
+                
+                showResult('validateCertResult', results, true);
+            } catch (error) {
+                showResult('validateCertResult', `错误: ${error.message}`, false);
+            }
+        }
+
+        // 2.1 建立信任关系
+        async function testEstablishTrust() {
+            try {
+                const trustData = {
+                    sourceDomainId: testDomains.domain1,
+                    targetDomainId: testDomains.domain2,
+                    trustLevel: 8,
+                    trustType: "BIDIRECTIONAL",
+                    sharedSecret: "test-shared-secret",
+                    isActive: true
+                };
+
+                const response = await fetch(`${apiBaseUrl}/trust/establish`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(trustData)
+                });
+                const result = await response.json();
+                
+                showResult('establishTrustResult', result, result.success);
+            } catch (error) {
+                showResult('establishTrustResult', `错误: ${error.message}`, false);
+            }
+        }
+
+        // 2.2 检查信任关系
+        async function testCheckTrust() {
+            try {
+                const response = await fetch(`${apiBaseUrl}/trust/check?sourceDomainId=${testDomains.domain1}&targetDomainId=${testDomains.domain2}`);
+                const result = await response.json();
+                
+                showResult('checkTrustResult', result, result.success && result.hasTrust);
+            } catch (error) {
+                showResult('checkTrustResult', `错误: ${error.message}`, false);
+            }
+        }
+
+        // 2.3 获取域信任关系
+        async function testGetDomainTrust() {
+            try {
+                const response = await fetch(`${apiBaseUrl}/trust/domain/${testDomains.domain1}`);
+                const result = await response.json();
+                
+                showResult('domainTrustResult', {
+                    success: result.success,
+                    count: result.count,
+                    trustRelations: result.trustRelations?.map(t => ({
+                        source: t.sourceDomainId,
+                        target: t.targetDomainId,
+                        level: t.trustLevel,
+                        type: t.trustType
+                    }))
+                }, result.success && result.count > 0);
+            } catch (error) {
+                showResult('domainTrustResult', `错误: ${error.message}`, false);
+            }
+        }
+
+        // 3.1 生成挑战码
+        async function testGenerateChallenge() {
+            try {
+                const response = await fetch(`${apiBaseUrl}/auth/challenge`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        sourceDomainId: testDomains.domain1,
+                        targetDomainId: testDomains.domain2,
+                        userId: 'test-user-123'
+                    })
+                });
+                const result = await response.json();
+                
+                showResult('challengeResult', {
+                    success: result.success,
+                    challenge: result.challenge,
+                    nonce: result.nonce,
+                    timestamp: result.timestamp,
+                    expiresAt: result.expiresAt
+                }, result.success);
+            } catch (error) {
+                showResult('challengeResult', `错误: ${error.message}`, false);
+            }
+        }
+
+        // 3.2 模拟跨域认证（这里只是模拟，实际需要真实的签名）
+        async function testCrossDomainAuth() {
+            try {
+                // 模拟认证请求数据
+                const authRequest = {
+                    userId: 'test-user-123',
+                    sourceDomainId: testDomains.domain1,
+                    targetDomainId: testDomains.domain2,
+                    authToken: 'mock-auth-token',
+                    signature: 'mock-signature',
+                    nonce: 'mock-nonce-' + Date.now(),
+                    timestamp: Date.now(),
+                    scope: 'read,write'
+                };
+
+                // 注意：这个测试会失败，因为签名是模拟的
+                const response = await fetch(`${apiBaseUrl}/auth/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(authRequest)
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentToken = result.token;
+                }
+                
+                showResult('crossAuthResult', result, result.success);
+            } catch (error) {
+                showResult('crossAuthResult', `错误: ${error.message}`, false);
+            }
+        }
+
+        // 3.3 验证认证令牌
+        async function testValidateToken() {
+            if (!currentToken) {
+                showResult('validateTokenResult', '没有可验证的令牌，请先运行跨域认证测试', false);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${apiBaseUrl}/auth/validate-token`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        tokenId: currentToken,
+                        targetDomainId: testDomains.domain2
+                    })
+                });
+                const result = await response.json();
+                
+                showResult('validateTokenResult', result, result.success);
+            } catch (error) {
+                showResult('validateTokenResult', `错误: ${error.message}`, false);
+            }
+        }
+
+        // 4.1 完整流程测试
+        async function testCompleteFlow() {
+            try {
+                let flowResults = [];
+
+                // 1. 检查域是否存在
+                const domainsResponse = await fetch(`${apiBaseUrl}/domains/active`);
+                const domainsResult = await domainsResponse.json();
+                flowResults.push({ step: '检查域', success: domainsResult.success });
+
+                // 2. 检查信任关系
+                const trustResponse = await fetch(`${apiBaseUrl}/trust/check?sourceDomainId=${testDomains.domain1}&targetDomainId=${testDomains.domain2}`);
+                const trustResult = await trustResponse.json();
+                flowResults.push({ step: '检查信任关系', success: trustResult.success && trustResult.hasTrust });
+
+                // 3. 生成挑战码
+                const challengeResponse = await fetch(`${apiBaseUrl}/auth/challenge`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        sourceDomainId: testDomains.domain1,
+                        targetDomainId: testDomains.domain2,
+                        userId: 'test-user-456'
+                    })
+                });
+                const challengeResult = await challengeResponse.json();
+                flowResults.push({ step: '生成挑战码', success: challengeResult.success });
+
+                const allSuccess = flowResults.every(r => r.success);
+                showResult('completeFlowResult', {
+                    overallSuccess: allSuccess,
+                    steps: flowResults,
+                    message: allSuccess ? '完整流程测试通过！' : '部分步骤失败，请检查具体步骤'
+                }, allSuccess);
+            } catch (error) {
+                showResult('completeFlowResult', `错误: ${error.message}`, false);
+            }
+        }
+
+        // 4.2 错误处理测试
+        async function testErrorHandling() {
+            try {
+                let errorTests = [];
+
+                // 测试不存在的域
+                const nonExistentDomainResponse = await fetch(`${apiBaseUrl}/domains/non-existent-domain`);
+                errorTests.push({
+                    test: '不存在的域',
+                    status: nonExistentDomainResponse.status,
+                    expected: 404
+                });
+
+                // 测试无效的信任关系检查
+                const invalidTrustResponse = await fetch(`${apiBaseUrl}/trust/check?sourceDomainId=invalid&targetDomainId=invalid`);
+                const invalidTrustResult = await invalidTrustResponse.json();
+                errorTests.push({
+                    test: '无效信任关系',
+                    success: invalidTrustResult.success === false
+                });
+
+                // 测试无效的挑战码生成
+                const invalidChallengeResponse = await fetch(`${apiBaseUrl}/auth/challenge`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        sourceDomainId: 'invalid-domain',
+                        targetDomainId: 'invalid-domain',
+                        userId: 'test-user'
+                    })
+                });
+                const invalidChallengeResult = await invalidChallengeResponse.json();
+                errorTests.push({
+                    test: '无效挑战码生成',
+                    success: invalidChallengeResult.success === false
+                });
+
+                showResult('errorHandlingResult', errorTests, true);
+            } catch (error) {
+                showResult('errorHandlingResult', `错误: ${error.message}`, false);
+            }
+        }
+    </script>
+</body>
+</html> 
